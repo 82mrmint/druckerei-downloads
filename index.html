@@ -182,8 +182,7 @@
         <div class="job-info" id="jobInfo" style="display: none;">
             <div class="job-name" id="jobName">📁 Ihr Auftrag</div>
             <div class="job-details">
-                <strong>Gültig bis:</strong> <span id="expiryDate">-</span><br>
-                <strong>Sichere Übertragung</strong> • EU-gehostet • DSGVO-konform
+                <strong>Gültig bis:</strong> <span id="expiryDate">-</span>
             </div>
         </div>
         
@@ -202,8 +201,7 @@
         </div>
         
         <div class="footer">
-            <strong>Druckerei Mäser GmbH</strong><br>
-            Ihre Dateien werden verschlüsselt übertragen
+            <strong>Druckerei Mäser GmbH</strong>
         </div>
     </div>
     
@@ -218,6 +216,18 @@
         const downloadUrl = getUrlParameter('download');
         const jobName = getUrlParameter('job');
         const expiryDate = getUrlParameter('expiry');
+        
+        // 🔍 DEBUG: Parameter anzeigen (für Entwicklung)
+        console.log('URL Parameters Debug:');
+        console.log('- Current URL:', window.location.href);
+        console.log('- download:', downloadUrl);
+        console.log('- job:', jobName);
+        console.log('- expiry:', expiryDate);
+        
+        // DEBUG-Info vorübergehend anzeigen
+        if (window.location.search) {
+            console.log('Raw URL search:', window.location.search);
+        }
         
         const statusElement = document.getElementById('status');
         const statusTextElement = document.getElementById('statusText');
@@ -269,7 +279,22 @@
         
         // Hauptlogik
         if (!downloadUrl) {
-            showError('Keine Download-URL gefunden. Bitte verwenden Sie den Link aus Ihrer E-Mail.');
+            let errorMsg = 'Keine Download-URL gefunden.';
+            
+            // Debug-Info für fehlende Parameter
+            const allParams = new URLSearchParams(window.location.search);
+            const paramInfo = [];
+            for (const [key, value] of allParams.entries()) {
+                paramInfo.push(`${key}=${value.substring(0, 50)}...`);
+            }
+            
+            if (paramInfo.length > 0) {
+                errorMsg += ' Gefundene Parameter: ' + paramInfo.join(', ');
+            } else {
+                errorMsg += ' Keine URL-Parameter gefunden. Bitte verwenden Sie den Link aus Ihrer E-Mail.';
+            }
+            
+            showError(errorMsg);
         } else {
             // Job-Informationen anzeigen
             if (jobName) {
