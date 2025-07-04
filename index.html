@@ -105,33 +105,7 @@
             font-size: 14px;
             line-height: 1.4;
         }
-        .manual-section {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        .manual-text {
-            color: #666;
-            font-size: 13px;
-            margin-bottom: 12px;
-        }
-        .download-btn {
-            background: linear-gradient(45deg, #00a8e6, #e91e63);
-            color: white;
-            text-decoration: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            display: inline-block;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 168, 230, 0.3);
-        }
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(233, 30, 99, 0.4);
-            background: linear-gradient(45deg, #e91e63, #ffeb3b);
-        }
+
         .footer {
             margin-top: 30px;
             color: #888;
@@ -190,15 +164,7 @@
             <strong>⚠️ Download-Fehler</strong><br>
             <span id="errorMessage">Die Download-Parameter sind ungültig.</span>
         </div>
-        
-        <div class="manual-section" id="manualSection" style="display: none;">
-            <div class="manual-text">
-                Falls der automatische Download nicht funktioniert:
-            </div>
-            <a href="#" id="manualDownloadBtn" class="download-btn" target="_blank">
-                📥 Manuell herunterladen
-            </a>
-        </div>
+
         
         <div class="footer">
             <strong>Druckerei Mäser GmbH</strong>
@@ -237,8 +203,6 @@
         const expiryDateElement = document.getElementById('expiryDate');
         const errorSectionElement = document.getElementById('errorSection');
         const errorMessageElement = document.getElementById('errorMessage');
-        const manualSectionElement = document.getElementById('manualSection');
-        const manualDownloadBtn = document.getElementById('manualDownloadBtn');
         
         function showError(message) {
             spinnerElement.style.display = 'none';
@@ -246,7 +210,6 @@
             statusTextElement.textContent = 'Fehler beim Download';
             errorMessageElement.textContent = message;
             errorSectionElement.style.display = 'block';
-            manualSectionElement.style.display = 'block';
         }
         
         function showSuccess() {
@@ -265,11 +228,6 @@
                 // Download über versteckten iframe starten
                 document.getElementById('downloadFrame').src = downloadUrl;
                 showSuccess();
-                
-                // Manuelle Download-Option nach 3 Sekunden anzeigen
-                setTimeout(function() {
-                    manualSectionElement.style.display = 'block';
-                }, 3000);
                 
             } catch (error) {
                 console.error('Download-Fehler:', error);
@@ -304,9 +262,6 @@
                 expiryDateElement.textContent = decodeURIComponent(expiryDate);
             }
             jobInfoElement.style.display = 'block';
-            
-            // Manuellen Download-Button konfigurieren
-            manualDownloadBtn.href = decodeURIComponent(downloadUrl);
             
             // Download nach kurzer Verzögerung starten
             setTimeout(startDownload, 1500);
