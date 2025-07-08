@@ -295,7 +295,7 @@
                 <strong>🍪 Datenschutz & Cookies</strong><br>
                 Diese Website verwendet nur technisch notwendige Cookies für den Download-Service. 
                 Keine Tracking- oder Marketing-Cookies. 
-                <a href="#" class="privacy-link" onclick="showPrivacyInfo()">Datenschutzrichtlinie</a>
+                <a href="https://maeserdruck.at/" class="privacy-link" target="_blank">Datenschutzrichtlinie</a>
             </div>
             <div class="cookie-buttons">
                 <button class="cookie-btn accept" onclick="acceptCookies()">
@@ -471,31 +471,6 @@
             closeCookieModal();
             hideCookieBanner();
             console.log('💾 Cookie-Einstellungen gespeichert:', cookieSettings);
-        }
-        
-        function showPrivacyInfo() {
-            alert(`📋 DATENSCHUTZ-INFORMATION
-
-Diese Download-Seite der Druckerei Mäser GmbH verwendet:
-
-✅ TECHNISCH NOTWENDIGE COOKIES:
-• Session-Management für Downloads
-• Sicherheitstoken für Dateizugriff
-• DSGVO-Cookie-Einstellungen
-
-❌ KEINE TRACKING-COOKIES:
-• Kein Google Analytics
-• Kein Facebook Pixel  
-• Keine Werbepartner
-
-🔒 DATENSCHUTZ:
-• Daten bleiben in Deutschland (Azure Germany West Central)
-• Automatische Löschung nach 7 Tagen
-• Keine Weitergabe an Dritte
-
-📞 KONTAKT:
-Druckerei Mäser GmbH
-Bei Fragen zum Datenschutz kontaktieren Sie uns.`);
         }
         
         function checkCookieConsent() {
