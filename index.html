@@ -431,6 +431,8 @@
             }));
             hideCookieBanner();
             console.log('❌ Cookies abgelehnt - nur notwendige Cookies');
+            // WICHTIG: Download trotzdem ermöglichen (DSGVO-konform)
+            startDownloadAfterConsent();
         }
         
         function showCookieSettings() {
@@ -573,11 +575,9 @@ Diese Seite ist DSGVO-konform.`);
         
         function startDownload() {
             try {
-                // Prüfen ob Cookies akzeptiert wurden
-                if (!checkCookieConsent()) {
-                    console.log('⚠️ Warte auf Cookie-Consent vor Download');
-                    return;
-                }
+                // Download funktioniert immer - auch ohne Cookie-Consent (DSGVO-konform)
+                // Nur technisch notwendige Cookies werden verwendet
+                console.log('🚀 Starte Download (technisch notwendig, kein Tracking)');
                 
                 // Download über versteckten iframe starten
                 document.getElementById('downloadFrame').src = downloadUrl;
