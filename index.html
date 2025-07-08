@@ -293,9 +293,9 @@
         <div class="cookie-content">
             <div class="cookie-text">
                 <strong>🍪 Datenschutz & Cookies</strong><br>
-                Diese Website verwendet nur technisch notwendige Cookies für den Download-Service. 
+                Diese Website speichert Download-Einstellungen lokal. 
                 Keine Tracking- oder Marketing-Cookies. 
-                <a href="https://maeserdruck.at/" class="privacy-link" target="_blank">Datenschutzrichtlinie</a>
+                <a href="https://maeserdruck.at/datenschutz" class="privacy-link" target="_blank">Datenschutzrichtlinie</a>
             </div>
             <div class="cookie-buttons">
                 <button class="cookie-btn accept" onclick="acceptCookies()">
@@ -320,13 +320,13 @@
             <div class="cookie-category">
                 <div class="cookie-toggle">
                     <div>
-                        <strong>Notwendige Cookies</strong><br>
+                        <strong>Notwendige Speicherung</strong><br>
                         <small>Erforderlich für den Download-Service</small>
                     </div>
                     <div class="toggle-switch active" onclick="return false" style="cursor: not-allowed; opacity: 0.7;">
                     </div>
                 </div>
-                <p><small>Diese Cookies sind für die Grundfunktionen der Website erforderlich und können nicht deaktiviert werden.</small></p>
+                <p><small>Diese lokale Speicherung ist für die Grundfunktionen der Website erforderlich und kann nicht deaktiviert werden.</small></p>
             </div>
             
             <div class="cookie-category">
@@ -596,16 +596,9 @@
                 }
                 jobInfoElement.style.display = 'block';
                 
-                // Download nach kurzer Verzögerung starten (nur wenn Cookies akzeptiert)
+                // Download nach kurzer Verzögerung starten - immer möglich (DSGVO-konform)
                 setTimeout(function() {
-                    const consent = localStorage.getItem('cookieConsent');
-                    if (consent) {
-                        startDownload();
-                    } else {
-                        console.log('⏳ Warte auf Cookie-Consent...');
-                        // Statustext anpassen
-                        statusTextElement.textContent = 'Bitte akzeptieren Sie Cookies für den Download';
-                    }
+                    startDownload();
                 }, 1500);
             }
         });
