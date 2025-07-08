@@ -127,75 +127,61 @@
             font-size: 24px;
         }
         
-        /* DSGVO Cookie Banner */
-        .cookie-banner {
+        /* Einfacher Cookie-Hinweis (nur Information, kein Consent) */
+        .cookie-notice {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: rgba(0, 0, 0, 0.95);
             color: white;
-            padding: 20px;
+            padding: 15px 20px;
             z-index: 10000;
             font-size: 14px;
             line-height: 1.5;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
             transform: translateY(100%);
             transition: transform 0.3s ease-in-out;
-        }
-        .cookie-banner.show {
-            transform: translateY(0);
-        }
-        .cookie-content {
-            max-width: 1200px;
-            margin: 0 auto;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 20px;
             flex-wrap: wrap;
         }
-        .cookie-text {
+        .cookie-notice.show {
+            transform: translateY(0);
+        }
+        .cookie-notice.hidden {
+            display: none;
+        }
+        .cookie-notice p {
+            margin: 0;
             flex: 1;
-            min-width: 300px;
+            min-width: 250px;
         }
-        .cookie-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+        .cookie-notice a {
+            color: #00a8e6;
+            text-decoration: none;
         }
-        .cookie-btn {
-            padding: 10px 20px;
+        .cookie-notice a:hover {
+            text-decoration: underline;
+        }
+        .cookie-notice button {
+            padding: 8px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
+            background: #00a8e6;
+            color: white;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background 0.2s ease;
             white-space: nowrap;
         }
-        .cookie-btn.accept {
-            background: #00a8e6;
-            color: white;
-        }
-        .cookie-btn.accept:hover {
+        .cookie-notice button:hover {
             background: #0088cc;
         }
-        .cookie-btn.reject {
-            background: #666;
-            color: white;
-        }
-        .cookie-btn.reject:hover {
-            background: #555;
-        }
-        .cookie-btn.settings {
-            background: transparent;
-            color: white;
-            border: 1px solid #666;
-        }
-        .cookie-btn.settings:hover {
-            border-color: #00a8e6;
-            color: #00a8e6;
-        }
+        
         .privacy-link {
             color: #00a8e6;
             text-decoration: none;
@@ -204,82 +190,14 @@
             text-decoration: underline;
         }
         
-        /* Cookie Settings Modal */
-        .cookie-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 10001;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .cookie-modal.show {
-            display: flex;
-        }
-        .cookie-modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 600px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .cookie-modal h3 {
-            margin: 0 0 20px 0;
-            color: #333;
-        }
-        .cookie-category {
-            margin: 20px 0;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-        .cookie-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 10px 0;
-        }
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 24px;
-            background: #ccc;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .toggle-switch.active {
-            background: #00a8e6;
-        }
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            transition: transform 0.3s;
-        }
-        .toggle-switch.active::after {
-            transform: translateX(26px);
-        }
-        
         @media (max-width: 768px) {
-            .cookie-content {
+            .cookie-notice {
                 flex-direction: column;
                 text-align: center;
+                gap: 10px;
             }
-            .cookie-buttons {
-                justify-content: center;
+            .cookie-notice p {
+                min-width: auto;
             }
         }
     </style>
@@ -288,67 +206,11 @@
     <!-- Versteckter iframe für automatischen Download -->
     <iframe id="downloadFrame" style="display: none;"></iframe>
     
-    <!-- DSGVO Cookie Banner -->
-    <div class="cookie-banner" id="cookieBanner">
-        <div class="cookie-content">
-            <div class="cookie-text">
-                <strong>🍪 Datenschutz & Cookies</strong><br>
-                Diese Website speichert Download-Einstellungen lokal. 
-                Keine Tracking- oder Marketing-Cookies.
-            </div>
-            <div class="cookie-buttons">
-                <button class="cookie-btn accept" onclick="acceptCookies()">
-                    ✅ Alle akzeptieren
-                </button>
-                <button class="cookie-btn reject" onclick="rejectCookies()">
-                    ❌ Ablehnen
-                </button>
-                <button class="cookie-btn settings" onclick="showCookieSettings()">
-                    ⚙️ Einstellungen
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Cookie Settings Modal -->
-    <div class="cookie-modal" id="cookieModal">
-        <div class="cookie-modal-content">
-            <h3>🍪 Cookie-Einstellungen</h3>
-            <p>Wählen Sie, welche Cookies Sie zulassen möchten:</p>
-            
-            <div class="cookie-category">
-                <div class="cookie-toggle">
-                    <div>
-                        <strong>Notwendige Speicherung</strong><br>
-                        <small>Erforderlich für den Download-Service</small>
-                    </div>
-                    <div class="toggle-switch active" onclick="return false" style="cursor: not-allowed; opacity: 0.7;">
-                    </div>
-                </div>
-                <p><small>Diese lokale Speicherung ist für die Grundfunktionen der Website erforderlich und kann nicht deaktiviert werden.</small></p>
-            </div>
-            
-            <div class="cookie-category">
-                <div class="cookie-toggle">
-                    <div>
-                        <strong>Analytische Cookies</strong><br>
-                        <small>Zur Verbesserung der Website</small>
-                    </div>
-                    <div class="toggle-switch" id="analyticsToggle" onclick="toggleAnalytics()">
-                    </div>
-                </div>
-                <p><small>Diese Cookies helfen uns zu verstehen, wie die Website genutzt wird. <strong>Aktuell nicht verwendet.</strong></small></p>
-            </div>
-            
-            <div style="text-align: center; margin-top: 30px;">
-                <button class="cookie-btn accept" onclick="saveCookieSettings()">
-                    💾 Einstellungen speichern
-                </button>
-                <button class="cookie-btn settings" onclick="closeCookieModal()" style="margin-left: 10px;">
-                    ❌ Schließen
-                </button>
-            </div>
-        </div>
+    <!-- Einfacher Cookie-Hinweis (nur Information, kein Consent erforderlich) -->
+    <div id="cookieNotice" class="cookie-notice hidden" role="dialog" aria-live="polite">
+        <p>🍪 Diese Website setzt ausschließlich technisch notwendige Cookies. 
+           Mehr Informationen in der <a href="https://maeserdruck.at/datenschutz" target="_blank">Datenschutzerklärung</a>.</p>
+        <button id="cookieOkBtn">Verstanden</button>
     </div>
     
     <div class="container">
@@ -388,110 +250,40 @@
         <div class="footer">
             <strong>Druckerei Mäser GmbH</strong><br>
             <a href="https://maeserdruck.at/" class="privacy-link" target="_blank">🌐 Zur Firmenseite</a> | 
-            <a href="https://maeserdruck.at/" class="privacy-link" target="_blank">Impressum</a>
+            <a href="https://maeserdruck.at/impressum" class="privacy-link" target="_blank">Impressum</a> | 
+            <a href="https://maeserdruck.at/datenschutz" class="privacy-link" target="_blank">Datenschutzerklärung</a>
         </div>
     </div>
     
     <script>
-        // DSGVO Cookie Management
-        let cookieSettings = {
-            necessary: true,  // Immer erforderlich
-            analytics: false
-        };
+        // Einfacher Cookie-Hinweis (nur Information, kein Consent erforderlich)
+        function showCookieNotice() {
+            const notice = document.getElementById('cookieNotice');
+            const noticeShown = localStorage.getItem('cookieNoticeShown');
+            
+            // Hinweis nur anzeigen, wenn noch nicht gezeigt (30 Tage Gültigkeit)
+            if (!noticeShown || isNoticeExpired(noticeShown)) {
+                setTimeout(() => {
+                    notice.classList.remove('hidden');
+                    notice.classList.add('show');
+                }, 1000);
+            }
+        }
         
-        function showCookieBanner() {
-            const banner = document.getElementById('cookieBanner');
-            // Banner mit kleiner Verzögerung anzeigen
+        function hideCookieNotice() {
+            const notice = document.getElementById('cookieNotice');
+            notice.classList.remove('show');
             setTimeout(() => {
-                banner.classList.add('show');
-            }, 1000);
-        }
-        
-        function hideCookieBanner() {
-            const banner = document.getElementById('cookieBanner');
-            banner.classList.remove('show');
-        }
-        
-        function acceptCookies() {
-            cookieSettings.analytics = true;
-            localStorage.setItem('cookieConsent', JSON.stringify({
-                timestamp: Date.now(),
-                accepted: true,
-                settings: cookieSettings
-            }));
-            hideCookieBanner();
-            console.log('✅ Cookies akzeptiert');
-        }
-        
-        function rejectCookies() {
-            cookieSettings.analytics = false;
-            localStorage.setItem('cookieConsent', JSON.stringify({
-                timestamp: Date.now(),
-                accepted: false,
-                settings: cookieSettings
-            }));
-            hideCookieBanner();
-            console.log('❌ Cookies abgelehnt - nur notwendige Cookies');
-        }
-        
-        function showCookieSettings() {
-            document.getElementById('cookieModal').classList.add('show');
-            // Analytics Toggle Status aktualisieren
-            const toggle = document.getElementById('analyticsToggle');
-            if (cookieSettings.analytics) {
-                toggle.classList.add('active');
-            } else {
-                toggle.classList.remove('active');
-            }
-        }
-        
-        function closeCookieModal() {
-            document.getElementById('cookieModal').classList.remove('show');
-        }
-        
-        function toggleAnalytics() {
-            cookieSettings.analytics = !cookieSettings.analytics;
-            const toggle = document.getElementById('analyticsToggle');
-            if (cookieSettings.analytics) {
-                toggle.classList.add('active');
-            } else {
-                toggle.classList.remove('active');
-            }
-        }
-        
-        function saveCookieSettings() {
-            localStorage.setItem('cookieConsent', JSON.stringify({
-                timestamp: Date.now(),
-                accepted: cookieSettings.analytics,
-                settings: cookieSettings
-            }));
-            closeCookieModal();
-            hideCookieBanner();
-            console.log('💾 Cookie-Einstellungen gespeichert:', cookieSettings);
-        }
-        
-        function checkCookieConsent() {
-            const consent = localStorage.getItem('cookieConsent');
-            if (!consent) {
-                // Kein Consent vorhanden - Banner anzeigen
-                showCookieBanner();
-                return false;
-            }
+                notice.classList.add('hidden');
+            }, 300);
             
-            const consentData = JSON.parse(consent);
-            const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-            
-            if (consentData.timestamp < oneMonthAgo) {
-                // Consent ist älter als 30 Tage - neu fragen
-                localStorage.removeItem('cookieConsent');
-                showCookieBanner();
-                return false;
-            }
-            
-            // Gültiger Consent vorhanden
-            cookieSettings = consentData.settings;
-            console.log('✅ Gültiger Cookie-Consent gefunden:', cookieSettings);
-            return true;
+            // Zeitstempel speichern (technisch notwendig für UX)
+            localStorage.setItem('cookieNoticeShown', Date.now().toString());
+        }
+        
+        function isNoticeExpired(timestamp) {
+            const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+            return parseInt(timestamp) < thirtyDaysAgo;
         }
         
         // URL-Parameter auslesen
@@ -505,17 +297,11 @@
         const jobName = getUrlParameter('job');
         const expiryDate = getUrlParameter('expiry');
         
-        // 🔍 DEBUG: Parameter anzeigen (für Entwicklung)
+        // DEBUG: Parameter anzeigen
         console.log('URL Parameters Debug:');
-        console.log('- Current URL:', window.location.href);
         console.log('- download:', downloadUrl);
         console.log('- job:', jobName);
         console.log('- expiry:', expiryDate);
-        
-        // DEBUG-Info vorübergehend anzeigen
-        if (window.location.search) {
-            console.log('Raw URL search:', window.location.search);
-        }
         
         const statusElement = document.getElementById('status');
         const statusTextElement = document.getElementById('statusText');
@@ -525,6 +311,9 @@
         const expiryDateElement = document.getElementById('expiryDate');
         const errorSectionElement = document.getElementById('errorSection');
         const errorMessageElement = document.getElementById('errorMessage');
+        
+        // Variable zum Verhindern von doppelten Downloads
+        let downloadStarted = false;
         
         function showError(message) {
             spinnerElement.style.display = 'none';
@@ -539,7 +328,6 @@
             statusElement.innerHTML = '<span class="success-icon">✅</span> <span>Download gestartet!</span>';
             statusElement.style.color = '#e91e63';
             
-            // Nach kurzer Zeit bestätigen
             setTimeout(function() {
                 statusTextElement.textContent = 'Download sollte in Ihrem Browser gestartet sein';
             }, 2000);
@@ -554,33 +342,30 @@
             
             try {
                 downloadStarted = true;
-                // Download funktioniert immer - auch ohne Cookie-Consent (DSGVO-konform)
-                // Nur technisch notwendige Cookies werden verwendet
-                console.log('🚀 Starte Download (technisch notwendig, kein Tracking)');
+                console.log('🚀 Starte Download (nur technisch notwendige Funktionen)');
                 
                 // Download über versteckten iframe starten
                 document.getElementById('downloadFrame').src = downloadUrl;
                 showSuccess();
                 
             } catch (error) {
-                downloadStarted = false; // Bei Fehler Flag zurücksetzen
+                downloadStarted = false;
                 console.error('Download-Fehler:', error);
                 showError('Download konnte nicht gestartet werden.');
             }
         }
         
-        // Variable zum Verhindern von doppelten Downloads
-        let downloadStarted = false;
-        
         // Hauptlogik beim Laden der Seite
         window.addEventListener('DOMContentLoaded', function() {
-            // Cookie-Consent prüfen
-            const hasValidConsent = checkCookieConsent();
+            // Cookie-Hinweis anzeigen (nur Information)
+            showCookieNotice();
+            
+            // "Verstanden" Button Event-Listener
+            document.getElementById('cookieOkBtn').addEventListener('click', hideCookieNotice);
             
             if (!downloadUrl) {
                 let errorMsg = 'Keine Download-URL gefunden.';
                 
-                // Debug-Info für fehlende Parameter
                 const allParams = new URLSearchParams(window.location.search);
                 const paramInfo = [];
                 for (const [key, value] of allParams.entries()) {
@@ -604,50 +389,12 @@
                 }
                 jobInfoElement.style.display = 'block';
                 
-                // Download nur starten wenn bereits Consent vorhanden ist
-                if (hasValidConsent) {
-                    setTimeout(function() {
-                        startDownload();
-                    }, 1500);
-                }
-                // Sonst warten wir auf Cookie-Entscheidung
+                // Download automatisch starten (technisch notwendig für Download-Service)
+                setTimeout(function() {
+                    startDownload();
+                }, 1500);
             }
         });
-        
-        // Download starten nachdem Cookies akzeptiert/abgelehnt wurden
-        function startDownloadAfterConsent() {
-            if (downloadUrl && !downloadStarted) {
-                setTimeout(startDownload, 500);
-            }
-        }
-        
-        // Event-Listener für Cookie-Acceptance
-        const originalAcceptCookies = acceptCookies;
-        acceptCookies = function() {
-            originalAcceptCookies();
-            startDownloadAfterConsent();
-        };
-        
-        const originalRejectCookies = rejectCookies;
-        rejectCookies = function() {
-            // Original-Funktion ohne startDownloadAfterConsent aufrufen
-            cookieSettings.analytics = false;
-            localStorage.setItem('cookieConsent', JSON.stringify({
-                timestamp: Date.now(),
-                accepted: false,
-                settings: cookieSettings
-            }));
-            hideCookieBanner();
-            console.log('❌ Cookies abgelehnt - nur notwendige Cookies');
-            // Download nach Ablehnung starten
-            startDownloadAfterConsent();
-        };
-        
-        const originalSaveCookieSettings = saveCookieSettings;
-        saveCookieSettings = function() {
-            originalSaveCookieSettings();
-            startDownloadAfterConsent();
-        };
     </script>
 </body>
 </html>
