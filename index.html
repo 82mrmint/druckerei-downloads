@@ -432,8 +432,6 @@
             }));
             hideCookieBanner();
             console.log('❌ Cookies abgelehnt - nur notwendige Cookies');
-            // WICHTIG: Download trotzdem ermöglichen (DSGVO-konform)
-            startDownloadAfterConsent();
         }
         
         function showCookieSettings() {
@@ -548,7 +546,14 @@
         }
         
         function startDownload() {
+            // Verhindere doppelte Downloads
+            if (downloadStarted) {
+                console.log('⚠️ Download bereits gestartet - überspringe weiteren Download');
+                return;
+            }
+            
             try {
+                downloadStarted = true;
                 // Download funktioniert immer - auch ohne Cookie-Consent (DSGVO-konform)
                 // Nur technisch notwendige Cookies werden verwendet
                 console.log('🚀 Starte Download (technisch notwendig, kein Tracking)');
@@ -558,15 +563,19 @@
                 showSuccess();
                 
             } catch (error) {
+                downloadStarted = false; // Bei Fehler Flag zurücksetzen
                 console.error('Download-Fehler:', error);
                 showError('Download konnte nicht gestartet werden.');
             }
         }
         
+        // Variable zum Verhindern von doppelten Downloads
+        let downloadStarted = false;
+        
         // Hauptlogik beim Laden der Seite
         window.addEventListener('DOMContentLoaded', function() {
             // Cookie-Consent prüfen
-            checkCookieConsent();
+            const hasValidConsent = checkCookieConsent();
             
             if (!downloadUrl) {
                 let errorMsg = 'Keine Download-URL gefunden.';
@@ -595,16 +604,19 @@
                 }
                 jobInfoElement.style.display = 'block';
                 
-                // Download nach kurzer Verzögerung starten - immer möglich (DSGVO-konform)
-                setTimeout(function() {
-                    startDownload();
-                }, 1500);
+                // Download nur starten wenn bereits Consent vorhanden ist
+                if (hasValidConsent) {
+                    setTimeout(function() {
+                        startDownload();
+                    }, 1500);
+                }
+                // Sonst warten wir auf Cookie-Entscheidung
             }
         });
         
-        // Download starten nachdem Cookies akzeptiert wurden
+        // Download starten nachdem Cookies akzeptiert/abgelehnt wurden
         function startDownloadAfterConsent() {
-            if (downloadUrl) {
+            if (downloadUrl && !downloadStarted) {
                 setTimeout(startDownload, 500);
             }
         }
@@ -613,6 +625,21 @@
         const originalAcceptCookies = acceptCookies;
         acceptCookies = function() {
             originalAcceptCookies();
+            startDownloadAfterConsent();
+        };
+        
+        const originalRejectCookies = rejectCookies;
+        rejectCookies = function() {
+            // Original-Funktion ohne startDownloadAfterConsent aufrufen
+            cookieSettings.analytics = false;
+            localStorage.setItem('cookieConsent', JSON.stringify({
+                timestamp: Date.now(),
+                accepted: false,
+                settings: cookieSettings
+            }));
+            hideCookieBanner();
+            console.log('❌ Cookies abgelehnt - nur notwendige Cookies');
+            // Download nach Ablehnung starten
             startDownloadAfterConsent();
         };
         
