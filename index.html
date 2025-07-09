@@ -190,6 +190,89 @@
             text-decoration: underline;
         }
         
+        /* Datenschutzerklärung Modal */
+        .privacy-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .privacy-modal.show {
+            display: flex;
+        }
+        .privacy-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .privacy-modal h2 {
+            margin: 0 0 20px 0;
+            color: #333;
+            border-bottom: 2px solid #00a8e6;
+            padding-bottom: 10px;
+        }
+        .privacy-modal h3 {
+            color: #333;
+            margin: 25px 0 15px 0;
+        }
+        .privacy-modal p, .privacy-modal ul {
+            color: #666;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        .privacy-modal ul {
+            padding-left: 20px;
+        }
+        .privacy-modal .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .privacy-modal .close-btn:hover {
+            color: #333;
+        }
+        .privacy-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        .privacy-table th,
+        .privacy-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .privacy-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+        .privacy-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
         @media (max-width: 768px) {
             .cookie-notice {
                 flex-direction: column;
@@ -198,6 +281,13 @@
             }
             .cookie-notice p {
                 min-width: auto;
+            }
+            .privacy-modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
+            .privacy-table {
+                font-size: 12px;
             }
         }
     </style>
@@ -209,8 +299,92 @@
     <!-- Einfacher Cookie-Hinweis (nur Information, kein Consent erforderlich) -->
     <div id="cookieNotice" class="cookie-notice hidden" role="dialog" aria-live="polite">
         <p>🍪 Diese Website setzt ausschließlich technisch notwendige Cookies. 
-           Mehr Informationen in der <a href="https://maeserdruck.at/datenschutz" target="_blank">Datenschutzerklärung</a>.</p>
+           Mehr Informationen in der <a href="#" onclick="showPrivacyModal(); return false;">Datenschutzerklärung</a>.</p>
         <button id="cookieOkBtn">Verstanden</button>
+    </div>
+    
+    <!-- Datenschutzerklärung Modal -->
+    <div class="privacy-modal" id="privacyModal">
+        <div class="privacy-modal-content">
+            <button class="close-btn" onclick="closePrivacyModal()">&times;</button>
+            
+            <h2>DATENSCHUTZERKLÄRUNG</h2>
+            
+            <h3>1. Verantwortlicher</h3>
+            <p>
+                <strong>Druckerei Mäser GmbH</strong><br>
+                Hofsteigstraße 104, 6923 Lauterach, Österreich<br>
+                E-Mail: office@druckerei-maeser.at
+            </p>
+            
+            <h3>2. Zweck und Rechtsgrundlagen</h3>
+            <p>Wir stellen unseren Kunden über temporäre Links Druckdaten zum Herunterladen bereit.</p>
+            <ul>
+                <li><strong>Vertragserfüllung</strong> – Verarbeitung der Verbindungsdaten zur Bereitstellung der Dateien im Rahmen des jeweiligen Druckauftrags (Art. 6 Abs. 1 lit. b DSGVO).</li>
+                <li><strong>IT- und Netzsicherheit</strong> – Protokollierung technischer Zugriffsdaten zur Erkennung und Abwehr von Cyberangriffen (Art. 6 Abs. 1 lit. f DSGVO; Erwägungsgrund 49).</li>
+            </ul>
+            
+            <h3>3. Hosting / Empfänger der Daten</h3>
+            <table class="privacy-table">
+                <thead>
+                    <tr>
+                        <th>Dienst</th>
+                        <th>Rolle</th>
+                        <th>Standort</th>
+                        <th>Garantien bei möglicher Drittlandübermittlung*</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GitHub Pages (GitHub Inc., 88 Colin P. Kelly Jr St, San Francisco CA 94107, USA)</td>
+                        <td>Hosting Provider (statisches Frontend)</td>
+                        <td>USA</td>
+                        <td>Standard-Vertragsklauseln (SCC) & EU-US Data-Privacy-Framework (DPF)</td>
+                    </tr>
+                    <tr>
+                        <td>Microsoft Azure – Region Germany West Central (Frankfurt) (Microsoft Ireland Operations Ltd., One Microsoft Place, Dublin 18, Irland)</td>
+                        <td>Auftragsverarbeiter; Speicherung & Auslieferung der Download-Dateien (Blob Storage)</td>
+                        <td>EU (Deutschland)</td>
+                        <td>EU Data Boundary; Remote-Support-Zugriffe außerhalb der EU nur ausnahmsweise, abgesichert durch SCC & DPF</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p><small>*Eine regelmäßige Übermittlung personenbezogener Daten in Drittländer ist nicht vorgesehen. Sollte sie in Einzelfällen (z. B. Support) nötig werden, gewährleisten die genannten Anbieter ein angemessenes Schutzniveau.</small></p>
+            
+            <h3>4. Server-Logfiles</h3>
+            <p>Beim Aufruf des Portals bzw. eines Download-Links erfassen die Hosting-Dienste automatisch:</p>
+            <ul>
+                <li>IP-Adresse</li>
+                <li>Datum / Uhrzeit</li>
+                <li>angeforderte URL</li>
+                <li>Referrer-URL</li>
+                <li>Browser / Betriebssystem (User-Agent)</li>
+                <li>HTTP-Statuscode</li>
+            </ul>
+            <p><strong>Zweck:</strong> Gewährleistung der Funktions- und IT-Sicherheit, Fehlerdiagnose, Abwehr von Missbrauch und Angriffen (Art. 6 Abs. 1 lit. f DSGVO; § 165 Abs. 3 TKG 2021).</p>
+            <p><strong>Speicherdauer:</strong> maximal 14 Tage, danach automatische Löschung.</p>
+            <p><strong>Keine Profilbildung:</strong> Eine Zusammenführung dieser Logdaten mit anderen Daten findet nicht statt.</p>
+            
+            <h3>5. Cookies / Tracking</h3>
+            <p>Das Portal verwendet keine Cookies, Tracking-Pixel oder sonstige Analyse- bzw. Marketing-Technologien.</p>
+            
+            <h3>6. Betroffenenrechte</h3>
+            <p>Sie haben das Recht auf:</p>
+            <ul>
+                <li>Auskunft (Art. 15 DSGVO)</li>
+                <li>Berichtigung (Art. 16)</li>
+                <li>Löschung (Art. 17)</li>
+                <li>Einschränkung der Verarbeitung (Art. 18)</li>
+                <li>Datenübertragbarkeit (Art. 20)</li>
+                <li>Widerspruch gegen die Verarbeitung (Art. 21)</li>
+            </ul>
+            <p>Wenden Sie sich hierzu an den oben genannten Verantwortlichen.</p>
+            <p>Sie können sich außerdem bei der Österreichischen Datenschutzbehörde (www.dsb.gv.at) beschweren.</p>
+            
+            <h3>7. Änderungen dieser Erklärung</h3>
+            <p>Technische oder rechtliche Änderungen können eine Anpassung dieser Datenschutzerklärung erforderlich machen.</p>
+            <p><strong>Stand:</strong> 9. Juli 2025</p>
+        </div>
     </div>
     
     <div class="container">
@@ -250,8 +424,7 @@
         <div class="footer">
             <strong>Druckerei Mäser GmbH</strong><br>
             <a href="https://maeserdruck.at/" class="privacy-link" target="_blank">🌐 Zur Firmenseite</a> | 
-            <a href="https://maeserdruck.at/impressum" class="privacy-link" target="_blank">Impressum</a> | 
-            <a href="https://maeserdruck.at/datenschutz" class="privacy-link" target="_blank">Datenschutzerklärung</a>
+            <a href="#" onclick="showPrivacyModal(); return false;" class="privacy-link">Datenschutzerklärung</a>
         </div>
     </div>
     
@@ -285,6 +458,30 @@
             const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
             return parseInt(timestamp) < thirtyDaysAgo;
         }
+        
+        // Datenschutzerklärung Modal Funktionen
+        function showPrivacyModal() {
+            document.getElementById('privacyModal').classList.add('show');
+        }
+        
+        function closePrivacyModal() {
+            document.getElementById('privacyModal').classList.remove('show');
+        }
+        
+        // Modal schließen bei Klick außerhalb des Inhalts
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('privacyModal');
+            if (event.target === modal) {
+                closePrivacyModal();
+            }
+        });
+        
+        // Modal schließen mit Escape-Taste
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePrivacyModal();
+            }
+        });
         
         // URL-Parameter auslesen
         function getUrlParameter(name) {
