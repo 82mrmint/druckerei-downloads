@@ -227,6 +227,11 @@
             color: #333;
             margin: 25px 0 15px 0;
         }
+        .privacy-modal h4 {
+            color: #333;
+            margin: 20px 0 10px 0;
+            font-size: 16px;
+        }
         .privacy-modal p, .privacy-modal ul {
             color: #666;
             line-height: 1.6;
@@ -319,10 +324,24 @@
             
             <h3>2. Zweck und Rechtsgrundlagen</h3>
             <p>Wir stellen unseren Kunden über temporäre Links Druckdaten zum Herunterladen bereit.</p>
-            <ul>
-                <li><strong>Vertragserfüllung</strong> – Verarbeitung der Verbindungsdaten zur Bereitstellung der Dateien im Rahmen des jeweiligen Druckauftrags (Art. 6 Abs. 1 lit. b DSGVO).</li>
-                <li><strong>IT- und Netzsicherheit</strong> – Protokollierung technischer Zugriffsdaten zur Erkennung und Abwehr von Cyberangriffen (Art. 6 Abs. 1 lit. f DSGVO; Erwägungsgrund 49).</li>
-            </ul>
+            <table class="privacy-table">
+                <thead>
+                    <tr>
+                        <th>Zweck</th>
+                        <th>Rechtsgrundlage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Vertragserfüllung – Bereitstellung der Dateien im Rahmen des jeweiligen Druckauftrags</td>
+                        <td>Art. 6 Abs. 1 lit. b DSGVO</td>
+                    </tr>
+                    <tr>
+                        <td>IT- und Netzsicherheit – Protokollierung technischer Zugriffsdaten zur Erkennung und Abwehr von Cyberangriffen</td>
+                        <td>Art. 6 Abs. 1 lit. f DSGVO; Erwägungsgrund 49</td>
+                    </tr>
+                </tbody>
+            </table>
             
             <h3>3. Hosting / Empfänger der Daten</h3>
             <table class="privacy-table">
@@ -337,7 +356,7 @@
                 <tbody>
                     <tr>
                         <td>GitHub Pages (GitHub Inc., 88 Colin P. Kelly Jr St, San Francisco CA 94107, USA)</td>
-                        <td>Hosting Provider (statisches Frontend)</td>
+                        <td>Hosting-Provider (statisches Frontend)</td>
                         <td>USA</td>
                         <td>Standard-Vertragsklauseln (SCC) & EU-US Data-Privacy-Framework (DPF)</td>
                     </tr>
@@ -350,6 +369,9 @@
                 </tbody>
             </table>
             <p><small>*Eine regelmäßige Übermittlung personenbezogener Daten in Drittländer ist nicht vorgesehen. Sollte sie in Einzelfällen (z. B. Support) nötig werden, gewährleisten die genannten Anbieter ein angemessenes Schutzniveau.</small></p>
+            
+            <h4>Hinweis zu GitHub Pages</h4>
+            <p>Beim Aufruf unseres Portals wird Ihre IP-Adresse an GitHub-Server in den USA übertragen. GitHub gewährleistet ein angemessenes Datenschutzniveau durch SCC und seine Zertifizierung im EU-US Data-Privacy-Framework.</p>
             
             <h3>4. Server-Logfiles</h3>
             <p>Beim Aufruf des Portals bzw. eines Download-Links erfassen die Hosting-Dienste automatisch:</p>
@@ -369,7 +391,7 @@
             <p>Das Portal verwendet keine Cookies, Tracking-Pixel oder sonstige Analyse- bzw. Marketing-Technologien.</p>
             
             <h3>6. Betroffenenrechte</h3>
-            <p>Sie haben das Recht auf:</p>
+            <p>Sie haben das Recht auf</p>
             <ul>
                 <li>Auskunft (Art. 15 DSGVO)</li>
                 <li>Berichtigung (Art. 16)</li>
