@@ -408,6 +408,53 @@
         </div>
     </div>
     
+    <!-- Impressum Modal -->
+    <div class="privacy-modal" id="impressumModal">
+        <div class="privacy-modal-content">
+            <button class="close-btn" onclick="closeImpressumModal()">&times;</button>
+            
+            <h2>IMPRESSUM</h2>
+            <p><small>(gemäß § 5 ECG, § 14 UGB, § 63 GewO)</small></p>
+            
+            <p>
+                <strong>Druckerei Mäser GmbH</strong><br>
+                Neubaugasse 11–15<br>
+                A-6923 Lauterach, Österreich
+            </p>
+            
+            <p>
+                <strong>Telefon:</strong> +43 5574 71210<br>
+                <strong>Fax:</strong> +43 5574 71210-17
+            </p>
+            
+            <p>
+                <strong>E-Mail:</strong> info@maeserdruck.at<br>
+                <strong>Web:</strong> www.maeserdruck.at
+            </p>
+            
+            <p>
+                <strong>Firmenbuch-Nr.:</strong> FN 41438 p<br>
+                <strong>Firmenbuchgericht:</strong> Landesgericht Feldkirch
+            </p>
+            
+            <p>
+                <strong>UID-Nr.:</strong> ATU 35760306
+            </p>
+            
+            <p>
+                <strong>Geschäftsführerin:</strong> Christine Mäser
+            </p>
+            
+            <p>
+                <strong>Zuständige Gewerbebehörde:</strong> Bezirkshauptmannschaft Bregenz
+            </p>
+            
+            <p>
+                <strong>Mitglied der Wirtschaftskammer Vorarlberg, Fachgruppe Druck</strong>
+            </p>
+        </div>
+    </div>
+    
     <div class="container">
         <div class="header">
             <img src="https://lh3.googleusercontent.com/d/1UxXH8ZTaObAQ3SlviRT6N6IisqX7btRe" 
@@ -445,6 +492,7 @@
         <div class="footer">
             <strong>Druckerei Mäser GmbH</strong><br>
             <a href="https://maeserdruck.at/" class="privacy-link" target="_blank">🌐 Zur Firmenseite</a> | 
+            <a href="#" onclick="showImpressumModal(); return false;" class="privacy-link">Impressum</a> | 
             <a href="#" onclick="showPrivacyModal(); return false;" class="privacy-link">Datenschutzerklärung</a>
         </div>
     </div>
@@ -489,11 +537,24 @@
             document.getElementById('privacyModal').classList.remove('show');
         }
         
+        // Impressum Modal Funktionen
+        function showImpressumModal() {
+            document.getElementById('impressumModal').classList.add('show');
+        }
+        
+        function closeImpressumModal() {
+            document.getElementById('impressumModal').classList.remove('show');
+        }
+        
         // Modal schließen bei Klick außerhalb des Inhalts
         window.addEventListener('click', function(event) {
-            const modal = document.getElementById('privacyModal');
-            if (event.target === modal) {
+            const privacyModal = document.getElementById('privacyModal');
+            const impressumModal = document.getElementById('impressumModal');
+            if (event.target === privacyModal) {
                 closePrivacyModal();
+            }
+            if (event.target === impressumModal) {
+                closeImpressumModal();
             }
         });
         
@@ -501,6 +562,7 @@
         window.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closePrivacyModal();
+                closeImpressumModal();
             }
         });
         
