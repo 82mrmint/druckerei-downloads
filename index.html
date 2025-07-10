@@ -552,10 +552,76 @@
             }, 2000);
         }
         
+        function isDownloadExpired() {
+            if (!expiryDate) {
+                return false; // Kein Ablaufdatum vorhanden
+            }
+            
+            try {
+                // Ablaufdatum parsen (Format: DD.MM.YYYY HH:MM oder DD.MM.YYYY)
+                const expiryDateDecoded = decodeURIComponent(expiryDate);
+                
+                let expiryDateTime;
+                
+                // Prüfe ob Uhrzeit enthalten ist (Format: DD.MM.YYYY HH:MM)
+                if (expiryDateDecoded.includes(' ') && expiryDateDecoded.includes(':')) {
+                    const [datePart, timePart] = expiryDateDecoded.split(' ');
+                    const dateParts = datePart.split('.');
+                    const timeParts = timePart.split(':');
+                    
+                    if (dateParts.length !== 3 || timeParts.length !== 2) {
+                        console.log('⚠️ Unbekanntes Datum/Zeit-Format:', expiryDateDecoded);
+                        return false; // Bei unbekanntem Format nicht blockieren
+                    }
+                    
+                    const day = parseInt(dateParts[0]);
+                    const month = parseInt(dateParts[1]) - 1; // Monat ist 0-basiert in JS
+                    const year = parseInt(dateParts[2]);
+                    const hour = parseInt(timeParts[0]);
+                    const minute = parseInt(timeParts[1]);
+                    
+                    expiryDateTime = new Date(year, month, day, hour, minute, 0);
+                    
+                } else {
+                    // Nur Datum ohne Uhrzeit (Format: DD.MM.YYYY)
+                    const parts = expiryDateDecoded.split('.');
+                    
+                    if (parts.length !== 3) {
+                        console.log('⚠️ Unbekanntes Datumsformat:', expiryDateDecoded);
+                        return false; // Bei unbekanntem Format nicht blockieren
+                    }
+                    
+                    const day = parseInt(parts[0]);
+                    const month = parseInt(parts[1]) - 1; // Monat ist 0-basiert in JS
+                    const year = parseInt(parts[2]);
+                    
+                    expiryDateTime = new Date(year, month, day, 23, 59, 59); // Ende des Tages
+                }
+                
+                const currentDateTime = new Date();
+                
+                console.log('📅 Ablaufdatum:', expiryDateTime.toLocaleString('de-DE'));
+                console.log('📅 Aktuelles Datum:', currentDateTime.toLocaleString('de-DE'));
+                
+                return currentDateTime > expiryDateTime;
+                
+            } catch (error) {
+                console.error('Fehler beim Parsen des Ablaufdatums:', error);
+                return false; // Bei Fehler nicht blockieren
+            }
+        }
+        
         function startDownload() {
             // Verhindere doppelte Downloads
             if (downloadStarted) {
                 console.log('⚠️ Download bereits gestartet - überspringe weiteren Download');
+                return;
+            }
+            
+            // Prüfe ob Download abgelaufen ist
+            if (isDownloadExpired()) {
+                console.log('⚠️ Download-Link ist abgelaufen');
+                showError('Der Download-Link ist abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
                 return;
             }
             
