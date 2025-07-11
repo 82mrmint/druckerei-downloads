@@ -595,18 +595,36 @@
                     const urlMatch = decodedUrl.match(/\/([^\/]+)\.zip(\?|$)/i);
                     if (urlMatch && urlMatch[1]) {
                         let extractedName = urlMatch[1];
+                        console.log('Ursprünglicher Dateiname:', extractedName);
                         
                         // Entferne gemeinsame Präfixe
                         extractedName = extractedName.replace(/^Druckerei_Maeser_GmbH_/, '');
-                        extractedName = extractedName.replace(/^[0-9a-f]{14}[A-Z0-9]{8}_/, ''); // Entferne anonyme ID
+                        console.log('Nach Druckerei-Präfix-Entfernung:', extractedName);
+                        
+                        // Entferne verschiedene Varianten von anonymen IDs:
+                        // Pattern 1: 14 Ziffern + 8 Zeichen (ursprünglich)
+                        extractedName = extractedName.replace(/^[0-9]{14}[A-Z0-9]{8}_/, '');
+                        // Pattern 2: 14 Ziffern + 8 alphanumerische Zeichen
+                        extractedName = extractedName.replace(/^[0-9]{14}[A-Z0-9a-z]{8}_/, '');
+                        // Pattern 3: Allgemeiner - Timestamp + Random String
+                        extractedName = extractedName.replace(/^[0-9]{14}[A-Z0-9a-z]+_/, '');
+                        // Pattern 4: Falls nur die anonyme ID ohne Unterstrich da ist
+                        if (extractedName.match(/^[0-9]{14}[A-Z0-9a-z]+$/)) {
+                            extractedName = '';
+                        }
+                        
+                        console.log('Nach anonymer ID-Entfernung:', extractedName);
                         
                         // Unterstriche durch Leerzeichen ersetzen
                         extractedName = extractedName.replace(/_/g, ' ');
+                        console.log('Nach Unterstrich-Ersetzung:', extractedName);
                         
                         // Wenn der extrahierte Name sinnvoll aussieht, verwende ihn
-                        if (extractedName.length > 3 && !extractedName.match(/^[0-9]+$/)) {
+                        if (extractedName.length > 3 && !extractedName.match(/^[0-9A-Z]+$/)) {
                             jobName = extractedName;
                             console.log('✓ Job-Name aus Download-URL extrahiert:', jobName);
+                        } else {
+                            console.log('⚠️ Extrahierter Name nicht verwendbar:', extractedName);
                         }
                     }
                 } catch (error) {
