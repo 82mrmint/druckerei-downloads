@@ -295,18 +295,6 @@
                 font-size: 12px;
             }
         }
-        
-        /* DSGVO-Konformitäts-Hinweis */
-        .dsgvo-notice {
-            background: #e8f5e8;
-            border: 1px solid #c3e6c3;
-            border-radius: 8px;
-            padding: 10px;
-            margin: 15px 0;
-            font-size: 12px;
-            color: #2d5a2d;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -420,7 +408,7 @@
             
             <h3>7. Änderungen dieser Erklärung</h3>
             <p>Technische oder rechtliche Entwicklungen können eine Anpassung dieser Datenschutzerklärung erforderlich machen.</p>
-            <p><strong>Stand:</strong> 11. Juli 2025</p>
+            <p><strong>Stand:</strong> 9. Juli 2025</p>
         </div>
     </div>
     
@@ -470,7 +458,7 @@
             </p>
         </div>
     </div>
-
+    
     <div class="container">
         <div class="header">
             <img src="https://lh3.googleusercontent.com/d/1UxXH8ZTaObAQ3SlviRT6N6IisqX7btRe" 
@@ -493,14 +481,10 @@
         </div>
         
         <div class="job-info" id="jobInfo" style="display: none;">
-            <div class="job-name" id="jobName">📁 Datei wird geladen...</div>
+            <div class="job-name" id="file-name">📁 Ihre Datei</div>
             <div class="job-details">
-                <strong>Gültig bis:</strong> <span id="expiryDate">-</span>
+                <strong>Gültig bis:</strong> <span id="expiry-date">-</span>
             </div>
-        </div>
-        
-        <div class="dsgvo-notice" id="dsgvoNotice" style="display: none;">
-            🔒 DSGVO-konforme Bereitstellung: Anonyme Speicherung, automatische Löschung nach Ablauf
         </div>
         
         <div class="error" id="errorSection" style="display: none;">
@@ -508,6 +492,7 @@
             <span id="errorMessage">Die Download-Parameter sind ungültig.</span>
         </div>
 
+        
         <div class="footer">
             <strong>Druckerei Mäser GmbH</strong><br>
             <a href="https://maeserdruck.at/" class="privacy-link" target="_blank">🌐 Zur Firmenseite</a> | 
@@ -517,75 +502,6 @@
     </div>
     
     <script>
-        // Client-Side Verschlüsselungsfunktionen (DSGVO-konform)
-        function base64UrlDecode(str) {
-            let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-            const padding = 4 - (base64.length % 4);
-            if (padding !== 4) {
-                base64 += '='.repeat(padding);
-            }
-            return atob(base64);
-        }
-        
-        function simpleDecrypt(encryptedBase64, key) {
-            const keyBytes = new TextEncoder().encode(key);
-            const encryptedBytes = new Uint8Array(atob(encryptedBase64).split('').map(c => c.charCodeAt(0)));
-            const decryptedBytes = new Uint8Array(encryptedBytes.length);
-            
-            for (let i = 0; i < encryptedBytes.length; i++) {
-                const keyIndex = i % keyBytes.length;
-                decryptedBytes[i] = encryptedBytes[i] ^ keyBytes[keyIndex];
-            }
-            
-            return new TextDecoder().decode(decryptedBytes);
-        }
-        
-        function getJobDataFromToken(token) {
-            try {
-                const encryptionKey = 'DruckereiMaeser2024';
-                const encryptedData = base64UrlDecode(token);
-                const decryptedJson = simpleDecrypt(encryptedData, encryptionKey);
-                return JSON.parse(decryptedJson);
-            } catch (error) {
-                console.error('Token-Dekodierung fehlgeschlagen:', error);
-                return null;
-            }
-        }
-        
-        // Vereinfachte UI-Funktion - nur minimale Informationen (DSGVO-konform)
-        function loadJobName() {
-            const jobToken = getUrlParameter('token');
-            
-            if (!jobToken) {
-                console.log('Kein Job-Token gefunden - verwende Legacy-Parameter');
-                return;
-            }
-            
-            try {
-                const jobData = getJobDataFromToken(jobToken);
-                if (!jobData) throw new Error('Ungültige Job-Daten');
-                
-                // NUR Dateiname anzeigen (keine Kundendaten!)
-                const fileNameElement = document.getElementById('jobName');
-                if (fileNameElement && jobData.zipFileName) {
-                    fileNameElement.textContent = '📁 ' + jobData.zipFileName;
-                }
-                
-                // DSGVO-Hinweis anzeigen
-                document.getElementById('dsgvoNotice').style.display = 'block';
-                
-                console.log('Job-Daten erfolgreich geladen (DSGVO-konform)');
-                
-            } catch (error) {
-                console.error('Fehler beim Laden der Job-Daten:', error);
-                // Fallback auf Legacy-Parameter
-                const jobName = getUrlParameter('job');
-                if (jobName) {
-                    document.getElementById('jobName').textContent = '📁 ' + decodeURIComponent(jobName);
-                }
-            }
-        }
-        
         // Einfacher Cookie-Hinweis (nur Information, kein Consent erforderlich)
         function showCookieNotice() {
             const notice = document.getElementById('cookieNotice');
@@ -660,17 +576,85 @@
             return urlParams.get(name);
         }
         
+        // Client-Side Entschlüsselung
+        function decryptJobToken(encryptedToken) {
+            try {
+                const encryptionKey = "DruckereiMaeserGmbH2025!";
+                
+                // Base64URL zu Base64 konvertieren
+                let base64 = encryptedToken.replace(/-/g, '+').replace(/_/g, '/');
+                while (base64.length % 4) {
+                    base64 += '=';
+                }
+                
+                // Base64 zu Bytes
+                const encryptedBytes = atob(base64);
+                const keyBytes = new TextEncoder().encode(encryptionKey);
+                
+                // XOR-Entschlüsselung
+                const decryptedBytes = [];
+                for (let i = 0; i < encryptedBytes.length; i++) {
+                    const keyIndex = i % keyBytes.length;
+                    decryptedBytes.push(encryptedBytes.charCodeAt(i) ^ keyBytes[keyIndex]);
+                }
+                
+                // Bytes zu String
+                const decryptedString = new TextDecoder().decode(new Uint8Array(decryptedBytes));
+                return JSON.parse(decryptedString);
+            } catch (error) {
+                console.error('Token-Entschlüsselung fehlgeschlagen:', error);
+                return null;
+            }
+        }
+        
+        // Job-Daten aus Token laden
+        function getJobDataFromToken(token) {
+            if (!token) return null;
+            return decryptJobToken(token);
+        }
+        
+        // Vereinfachte UI - NUR minimale Informationen anzeigen
+        function loadJobName() {
+            const jobToken = getUrlParameter('token');
+            const expiry = getUrlParameter('expiry');
+            
+            try {
+                const jobData = getJobDataFromToken(jobToken);
+                if (!jobData) throw new Error('Ungültige Job-Daten');
+                
+                // NUR Dateiname anzeigen
+                const fileNameElement = document.getElementById('file-name');
+                if (fileNameElement && jobData.zipFileName) {
+                    fileNameElement.textContent = jobData.zipFileName;
+                }
+                
+                // Ablaufzeit anzeigen
+                const expiryElement = document.getElementById('expiry-date');
+                if (expiryElement && expiry) {
+                    const expiryDate = new Date(decodeURIComponent(expiry));
+                    expiryElement.textContent = expiryDate.toLocaleString('de-DE');
+                }
+                
+                // Job-Info anzeigen
+                const jobInfoElement = document.getElementById('jobInfo');
+                if (jobInfoElement) {
+                    jobInfoElement.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Fehler beim Laden der Job-Daten:', error);
+            }
+        }
+        
         // Parameter extrahieren
         const downloadUrl = getUrlParameter('download');
         const jobToken = getUrlParameter('token');
-        const jobName = getUrlParameter('job'); // Legacy-Support
         const expiryDate = getUrlParameter('expiry');
         
         // DEBUG: Parameter anzeigen
         console.log('URL Parameters Debug:');
         console.log('- download:', downloadUrl);
-        console.log('- token:', jobToken ? 'Token vorhanden' : 'Kein Token');
-        console.log('- job (legacy):', jobName);
+        console.log('- job:', jobName);
         console.log('- expiry:', expiryDate);
         
         const statusElement = document.getElementById('status');
@@ -857,14 +841,8 @@
                 
                 showError(errorMsg);
             } else {
-                // Job-Informationen laden (Token oder Legacy)
+                // Job-Informationen laden und anzeigen
                 loadJobName();
-                
-                // Ablaufzeit anzeigen
-                if (expiryDate) {
-                    expiryDateElement.textContent = decodeURIComponent(expiryDate);
-                }
-                jobInfoElement.style.display = 'block';
                 
                 // Download automatisch starten (technisch notwendig für Download-Service)
                 setTimeout(function() {
