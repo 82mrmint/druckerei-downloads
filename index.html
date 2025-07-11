@@ -576,78 +576,16 @@
             return urlParams.get(name);
         }
         
-        // Client-Side Entschlüsselung für neues Token-System
-        function decryptJobToken(encryptedToken) {
-            try {
-                const encryptionKey = "DruckereiMaeserGmbH2025!";
-                
-                // Base64URL zu Base64 konvertieren
-                let base64 = encryptedToken.replace(/-/g, '+').replace(/_/g, '/');
-                while (base64.length % 4) {
-                    base64 += '=';
-                }
-                
-                // Base64 zu Bytes
-                const encryptedBytes = atob(base64);
-                const keyBytes = new TextEncoder().encode(encryptionKey);
-                
-                // XOR-Entschlüsselung
-                const decryptedBytes = [];
-                for (let i = 0; i < encryptedBytes.length; i++) {
-                    const keyIndex = i % keyBytes.length;
-                    decryptedBytes.push(encryptedBytes.charCodeAt(i) ^ keyBytes[keyIndex]);
-                }
-                
-                // Bytes zu String
-                const decryptedString = new TextDecoder().decode(new Uint8Array(decryptedBytes));
-                return JSON.parse(decryptedString);
-            } catch (error) {
-                console.error('Token-Entschlüsselung fehlgeschlagen:', error);
-                return null;
-            }
-        }
-        
-        // Universelle Funktion um Job-Daten zu extrahieren (alt + neu)
-        function getJobData() {
-            // Neue Token-basierte URLs
-            const token = getUrlParameter('token');
-            if (token) {
-                console.log('🔄 Neues Token-System erkannt');
-                const jobData = decryptJobToken(token);
-                if (jobData) {
-                    return {
-                        jobName: jobData.jobName,
-                        zipFileName: jobData.zipFileName,
-                        isNewSystem: true
-                    };
-                }
-            }
-            
-            // Alte direkte Job-Parameter URLs
-            const oldJobParam = getUrlParameter('job');
-            if (oldJobParam) {
-                console.log('⚠️ Altes System erkannt - Parameter "job" gefunden');
-                const jobName = decodeURIComponent(oldJobParam);
-                return {
-                    jobName: jobName,
-                    zipFileName: `Druckerei_Maeser_GmbH_${jobName.replace(/[^a-zA-Z0-9]/g, '_')}.zip`,
-                    isNewSystem: false
-                };
-            }
-            
-            return null;
-        }
-        
         // Parameter extrahieren
         const downloadUrl = getUrlParameter('download');
+        const jobName = getUrlParameter('job');
         const expiryDate = getUrlParameter('expiry');
-        const jobData = getJobData();
         
         // DEBUG: Parameter anzeigen
         console.log('URL Parameters Debug:');
         console.log('- download:', downloadUrl);
+        console.log('- job:', jobName);
         console.log('- expiry:', expiryDate);
-        console.log('- jobData:', jobData);
         
         const statusElement = document.getElementById('status');
         const statusTextElement = document.getElementById('statusText');
@@ -679,42 +617,7 @@
             }, 2000);
         }
         
-        // Universelle Funktion um Job-Informationen anzuzeigen (alt + neu)
-        function displayJobInfo() {
-            if (!jobData) {
-                console.log('❌ Keine Job-Daten gefunden');
-                return;
-            }
-            
-            // Job-Name schön formatieren wie im Screenshot
-            const cleanJobName = jobData.jobName.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
-            
-            // Job-Info anzeigen
-            jobNameElement.innerHTML = `
-                <span style="font-size: 20px; margin-right: 8px;">📁</span>
-                ${cleanJobName}
-            `;
-            
-            // Ablaufzeit anzeigen
-            if (expiryDate) {
-                try {
-                    const expiryDateDecoded = decodeURIComponent(expiryDate);
-                    const expiryDateTime = new Date(expiryDateDecoded);
-                    expiryDateElement.textContent = expiryDateTime.toLocaleString('de-DE');
-                } catch (error) {
-                    console.error('Fehler beim Parsen des Ablaufdatums:', error);
-                    expiryDateElement.textContent = decodeURIComponent(expiryDate);
-                }
-            } else {
-                expiryDateElement.textContent = 'Nicht verfügbar';
-            }
-            
-            // Job-Info-Bereich anzeigen
-            jobInfoElement.style.display = 'block';
-            
-            console.log(`✅ Job-Daten angezeigt: ${cleanJobName}`);
-            console.log(`📅 System: ${jobData.isNewSystem ? 'Neu (Token)' : 'Alt (Direkt)'}`);
-        }
+        function isDownloadExpired() {
             if (!expiryDate) {
                 return false; // Kein Ablaufdatum vorhanden
             }
@@ -868,8 +771,14 @@
                 
                 showError(errorMsg);
             } else {
-                // UNIVERSAL: Job-Informationen anzeigen (alt + neu)
-                displayJobInfo();
+                // Job-Informationen anzeigen
+                if (jobName) {
+                    jobNameElement.textContent = '📁 ' + decodeURIComponent(jobName);
+                }
+                if (expiryDate) {
+                    expiryDateElement.textContent = decodeURIComponent(expiryDate);
+                }
+                jobInfoElement.style.display = 'block';
                 
                 // Download automatisch starten (technisch notwendig für Download-Service)
                 setTimeout(function() {
