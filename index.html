@@ -486,6 +486,29 @@
             </div>
         </div>
         
+        <div id="downloadSection" style="display: none; margin: 20px 0;">
+            <button id="downloadBtn" onclick="startManualDownload()" style="
+                background: linear-gradient(135deg, #00a8e6 0%, #e91e63 100%);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                font-size: 16px;
+                font-weight: 600;
+                border-radius: 12px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0, 168, 230, 0.3);
+                transition: all 0.3s ease;
+                margin: 10px 0;
+                width: 100%;
+                max-width: 300px;
+            ">
+                📥 Datei herunterladen
+            </button>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                Der Download startet automatisch. Falls nicht, klicken Sie den Button oben.
+            </p>
+        </div>
+        
         <div class="error" id="errorSection" style="display: none;">
             <strong>⚠️ Download-Fehler</strong><br>
             <span id="errorMessage">Die Download-Parameter sind ungültig.</span>
@@ -620,10 +643,24 @@
             try {
                 const jobData = getJobDataFromToken(jobToken);
                 if (jobData) {
-                    // NUR Dateiname anzeigen
+                    // Dateiname schöner anzeigen
                     const fileNameElement = document.getElementById('file-name');
                     if (fileNameElement && jobData.zipFileName) {
-                        fileNameElement.textContent = '📁 ' + jobData.zipFileName;
+                        // Dateiname ohne Pfad und mit schöner Formatierung
+                        const cleanFileName = jobData.zipFileName.replace(/^.*[\\\/]/, '');
+                        fileNameElement.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 24px;">📁</span>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 5px;">
+                                        ${cleanFileName}
+                                    </div>
+                                    <div style="font-size: 12px; color: #666;">
+                                        Bereit zum Download
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     }
                     
                     // Ablaufzeit anzeigen
@@ -633,17 +670,34 @@
                         expiryElement.textContent = expiryDate.toLocaleString('de-DE');
                     }
                     
-                    // Job-Info anzeigen
+                    // Job-Info und Download-Button anzeigen
                     const jobInfoElement = document.getElementById('jobInfo');
+                    const downloadSectionElement = document.getElementById('downloadSection');
                     if (jobInfoElement) {
                         jobInfoElement.style.display = 'block';
+                    }
+                    if (downloadSectionElement) {
+                        downloadSectionElement.style.display = 'block';
                     }
                 } else {
                     // Fallback für alte URLs ohne Token
                     const oldJobParam = getUrlParameter('job');
                     if (oldJobParam) {
                         console.warn('⚠️ Alte URL-Struktur erkannt! Parameter "job" gefunden:', oldJobParam);
-                        document.getElementById('file-name').textContent = '📁 ' + decodeURIComponent(oldJobParam);
+                        const cleanJobName = decodeURIComponent(oldJobParam);
+                        document.getElementById('file-name').innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 24px;">📁</span>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 5px;">
+                                        ${cleanJobName}
+                                    </div>
+                                    <div style="font-size: 12px; color: #666;">
+                                        Bereit zum Download
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                         
                         // Ablaufzeit anzeigen
                         const expiryElement = document.getElementById('expiry-date');
@@ -653,8 +707,15 @@
                             expiryElement.textContent = expiryDate.toLocaleString('de-DE');
                         }
                         
-                        // Job-Info anzeigen
-                        document.getElementById('jobInfo').style.display = 'block';
+                        // Job-Info und Download-Button anzeigen
+                        const jobInfoElement = document.getElementById('jobInfo');
+                        const downloadSectionElement = document.getElementById('downloadSection');
+                        if (jobInfoElement) {
+                            jobInfoElement.style.display = 'block';
+                        }
+                        if (downloadSectionElement) {
+                            downloadSectionElement.style.display = 'block';
+                        }
                     }
                 }
                 
@@ -664,8 +725,22 @@
                 // Fallback für alte URLs
                 const oldJobParam = getUrlParameter('job');
                 if (oldJobParam) {
-                    document.getElementById('file-name').textContent = '📁 ' + decodeURIComponent(oldJobParam);
+                    const cleanJobName = decodeURIComponent(oldJobParam);
+                    document.getElementById('file-name').innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 24px;">📁</span>
+                            <div>
+                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 5px;">
+                                    ${cleanJobName}
+                                </div>
+                                <div style="font-size: 12px; color: #666;">
+                                    Bereit zum Download
+                                </div>
+                            </div>
+                        </div>
+                    `;
                     document.getElementById('jobInfo').style.display = 'block';
+                    document.getElementById('downloadSection').style.display = 'block';
                 }
             }
         }
@@ -826,6 +901,53 @@
                 
                 // Download über versteckten iframe starten
                 document.getElementById('downloadFrame').src = downloadUrl;
+                showSuccess();
+                
+            } catch (error) {
+                downloadStarted = false;
+                console.error('Download-Fehler:', error);
+                showError('Download konnte nicht gestartet werden.');
+            }
+        }
+        
+        // Manueller Download-Button
+        function startManualDownload() {
+            if (downloadStarted) {
+                console.log('⚠️ Download bereits gestartet - überspringe weiteren Download');
+                return;
+            }
+            
+            if (isDownloadExpired()) {
+                console.log('⚠️ Download-Link ist abgelaufen');
+                showError('Der Download-Link ist abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
+                return;
+            }
+            
+            try {
+                downloadStarted = true;
+                console.log('🚀 Starte manuellen Download');
+                
+                // Versuche mit originaler Dateiname zu downloaden
+                const jobToken = getUrlParameter('token');
+                const jobData = getJobDataFromToken(jobToken);
+                
+                if (jobData && jobData.zipFileName) {
+                    // Erstelle einen temporären Download-Link mit dem originalen Dateinamen
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = jobData.zipFileName; // Originaler Dateiname
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    console.log('✅ Download gestartet mit originalem Dateinamen:', jobData.zipFileName);
+                } else {
+                    // Fallback: Normaler Download
+                    document.getElementById('downloadFrame').src = downloadUrl;
+                    console.log('✅ Download gestartet (Fallback)');
+                }
+                
                 showSuccess();
                 
             } catch (error) {
