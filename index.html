@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -578,13 +579,59 @@
         
         // Parameter extrahieren
         const downloadUrl = getUrlParameter('download');
-        const jobName = getUrlParameter('job');
+        let jobName = getUrlParameter('job');
+        const jobToken = getUrlParameter('token');
         const expiryDate = getUrlParameter('expiry');
+        
+        // Wenn kein job-Parameter vorhanden ist, aber token vorhanden ist (anonymisiertes Script)
+        if (!jobName && jobToken) {
+            // Versuche Job-Namen aus der Download-URL zu extrahieren
+            if (downloadUrl) {
+                try {
+                    const decodedUrl = decodeURIComponent(downloadUrl);
+                    console.log('Versuche Job-Namen aus URL zu extrahieren:', decodedUrl);
+                    
+                    // Suche nach Dateinamen-Pattern im URL (nach letztem / aber vor .zip)
+                    const urlMatch = decodedUrl.match(/\/([^\/]+)\.zip(\?|$)/i);
+                    if (urlMatch && urlMatch[1]) {
+                        let extractedName = urlMatch[1];
+                        
+                        // Entferne gemeinsame Präfixe
+                        extractedName = extractedName.replace(/^Druckerei_Maeser_GmbH_/, '');
+                        extractedName = extractedName.replace(/^[0-9a-f]{14}[A-Z0-9]{8}_/, ''); // Entferne anonyme ID
+                        
+                        // Unterstriche durch Leerzeichen ersetzen
+                        extractedName = extractedName.replace(/_/g, ' ');
+                        
+                        // Wenn der extrahierte Name sinnvoll aussieht, verwende ihn
+                        if (extractedName.length > 3 && !extractedName.match(/^[0-9]+$/)) {
+                            jobName = extractedName;
+                            console.log('✓ Job-Name aus Download-URL extrahiert:', jobName);
+                        }
+                    }
+                } catch (error) {
+                    console.log('⚠️ Fehler beim Extrahieren des Job-Namens aus URL:', error);
+                }
+            }
+            
+            // Fallback: Verwende eine generische Anzeige mit dem Datum
+            if (!jobName) {
+                const currentDate = new Date();
+                const formattedDate = currentDate.toLocaleDateString('de-DE', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                jobName = `Auftrag vom ${formattedDate}`;
+                console.log('✓ Verwende Fallback Job-Namen:', jobName);
+            }
+        }
         
         // DEBUG: Parameter anzeigen
         console.log('URL Parameters Debug:');
         console.log('- download:', downloadUrl);
         console.log('- job:', jobName);
+        console.log('- token:', jobToken);
         console.log('- expiry:', expiryDate);
         
         const statusElement = document.getElementById('status');
@@ -772,8 +819,11 @@
                 showError(errorMsg);
             } else {
                 // Job-Informationen anzeigen
-                if (jobName) {
+                if (jobName && jobName !== 'Ihr Auftrag') {
                     jobNameElement.textContent = '📁 ' + decodeURIComponent(jobName);
+                } else {
+                    // Fallback für den Fall dass kein Job-Name verfügbar ist
+                    jobNameElement.textContent = '📁 Ihr Auftrag';
                 }
                 if (expiryDate) {
                     expiryDateElement.textContent = decodeURIComponent(expiryDate);
