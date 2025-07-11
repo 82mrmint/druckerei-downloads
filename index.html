@@ -105,7 +105,6 @@
             font-size: 14px;
             line-height: 1.4;
         }
-
         .footer {
             margin-top: 30px;
             color: #888;
@@ -620,29 +619,54 @@
             
             try {
                 const jobData = getJobDataFromToken(jobToken);
-                if (!jobData) throw new Error('Ungültige Job-Daten');
-                
-                // NUR Dateiname anzeigen
-                const fileNameElement = document.getElementById('file-name');
-                if (fileNameElement && jobData.zipFileName) {
-                    fileNameElement.textContent = jobData.zipFileName;
-                }
-                
-                // Ablaufzeit anzeigen
-                const expiryElement = document.getElementById('expiry-date');
-                if (expiryElement && expiry) {
-                    const expiryDate = new Date(decodeURIComponent(expiry));
-                    expiryElement.textContent = expiryDate.toLocaleString('de-DE');
-                }
-                
-                // Job-Info anzeigen
-                const jobInfoElement = document.getElementById('jobInfo');
-                if (jobInfoElement) {
-                    jobInfoElement.style.display = 'block';
+                if (jobData) {
+                    // NUR Dateiname anzeigen
+                    const fileNameElement = document.getElementById('file-name');
+                    if (fileNameElement && jobData.zipFileName) {
+                        fileNameElement.textContent = '📁 ' + jobData.zipFileName;
+                    }
+                    
+                    // Ablaufzeit anzeigen
+                    const expiryElement = document.getElementById('expiry-date');
+                    if (expiryElement && expiry) {
+                        const expiryDate = new Date(decodeURIComponent(expiry));
+                        expiryElement.textContent = expiryDate.toLocaleString('de-DE');
+                    }
+                    
+                    // Job-Info anzeigen
+                    const jobInfoElement = document.getElementById('jobInfo');
+                    if (jobInfoElement) {
+                        jobInfoElement.style.display = 'block';
+                    }
+                } else {
+                    // Fallback für alte URLs ohne Token
+                    const oldJobParam = getUrlParameter('job');
+                    if (oldJobParam) {
+                        console.warn('⚠️ Alte URL-Struktur erkannt! Parameter "job" gefunden:', oldJobParam);
+                        document.getElementById('file-name').textContent = '📁 ' + decodeURIComponent(oldJobParam);
+                        
+                        // Ablaufzeit anzeigen
+                        const expiryElement = document.getElementById('expiry-date');
+                        const expiry = getUrlParameter('expiry');
+                        if (expiryElement && expiry) {
+                            const expiryDate = new Date(decodeURIComponent(expiry));
+                            expiryElement.textContent = expiryDate.toLocaleString('de-DE');
+                        }
+                        
+                        // Job-Info anzeigen
+                        document.getElementById('jobInfo').style.display = 'block';
+                    }
                 }
                 
             } catch (error) {
                 console.error('Fehler beim Laden der Job-Daten:', error);
+                
+                // Fallback für alte URLs
+                const oldJobParam = getUrlParameter('job');
+                if (oldJobParam) {
+                    document.getElementById('file-name').textContent = '📁 ' + decodeURIComponent(oldJobParam);
+                    document.getElementById('jobInfo').style.display = 'block';
+                }
             }
         }
         
@@ -654,15 +678,20 @@
         // DEBUG: Parameter anzeigen
         console.log('URL Parameters Debug:');
         console.log('- download:', downloadUrl);
-        console.log('- job:', jobName);
+        console.log('- token:', jobToken);
         console.log('- expiry:', expiryDate);
+        
+        // Überprüfe ob alte Parameter noch vorhanden sind
+        const oldJobParam = getUrlParameter('job');
+        if (oldJobParam) {
+            console.warn('⚠️ Alte URL-Struktur erkannt! Parameter "job" gefunden:', oldJobParam);
+            console.warn('⚠️ System verwendet noch nicht die neue Token-Struktur!');
+        }
         
         const statusElement = document.getElementById('status');
         const statusTextElement = document.getElementById('statusText');
         const spinnerElement = document.getElementById('spinner');
         const jobInfoElement = document.getElementById('jobInfo');
-        const jobNameElement = document.getElementById('jobName');
-        const expiryDateElement = document.getElementById('expiryDate');
         const errorSectionElement = document.getElementById('errorSection');
         const errorMessageElement = document.getElementById('errorMessage');
         
@@ -693,7 +722,6 @@
             }
             
             try {
-                // Ablaufdatum parsen (Format: DD.MM.YYYY HH:MM, DD.MM.YYYY oder YYYY-MM-DD HH:MM)
                 const expiryDateDecoded = decodeURIComponent(expiryDate);
                 
                 let expiryDateTime;
@@ -701,7 +729,6 @@
                 // Prüfe ob ISO-Format (YYYY-MM-DD HH:MM oder YYYY-MM-DD)
                 if (expiryDateDecoded.includes('-')) {
                     if (expiryDateDecoded.includes(' ') && expiryDateDecoded.includes(':')) {
-                        // Format: YYYY-MM-DD HH:MM
                         const [datePart, timePart] = expiryDateDecoded.split(' ');
                         const dateParts = datePart.split('-');
                         const timeParts = timePart.split(':');
@@ -712,15 +739,13 @@
                         }
                         
                         const year = parseInt(dateParts[0]);
-                        const month = parseInt(dateParts[1]) - 1; // Monat ist 0-basiert in JS
+                        const month = parseInt(dateParts[1]) - 1;
                         const day = parseInt(dateParts[2]);
                         const hour = parseInt(timeParts[0]);
                         const minute = parseInt(timeParts[1]);
                         
                         expiryDateTime = new Date(year, month, day, hour, minute, 0);
-                        
                     } else {
-                        // Format: YYYY-MM-DD
                         const parts = expiryDateDecoded.split('-');
                         
                         if (parts.length !== 3) {
@@ -729,16 +754,14 @@
                         }
                         
                         const year = parseInt(parts[0]);
-                        const month = parseInt(parts[1]) - 1; // Monat ist 0-basiert in JS
+                        const month = parseInt(parts[1]) - 1;
                         const day = parseInt(parts[2]);
                         
-                        expiryDateTime = new Date(year, month, day, 23, 59, 59); // Ende des Tages
+                        expiryDateTime = new Date(year, month, day, 23, 59, 59);
                     }
-                    
                 } else {
                     // Deutsches Format (DD.MM.YYYY HH:MM oder DD.MM.YYYY)
                     if (expiryDateDecoded.includes(' ') && expiryDateDecoded.includes(':')) {
-                        // Format: DD.MM.YYYY HH:MM
                         const [datePart, timePart] = expiryDateDecoded.split(' ');
                         const dateParts = datePart.split('.');
                         const timeParts = timePart.split(':');
@@ -749,15 +772,13 @@
                         }
                         
                         const day = parseInt(dateParts[0]);
-                        const month = parseInt(dateParts[1]) - 1; // Monat ist 0-basiert in JS
+                        const month = parseInt(dateParts[1]) - 1;
                         const year = parseInt(dateParts[2]);
                         const hour = parseInt(timeParts[0]);
                         const minute = parseInt(timeParts[1]);
                         
                         expiryDateTime = new Date(year, month, day, hour, minute, 0);
-                        
                     } else {
-                        // Format: DD.MM.YYYY
                         const parts = expiryDateDecoded.split('.');
                         
                         if (parts.length !== 3) {
@@ -766,10 +787,10 @@
                         }
                         
                         const day = parseInt(parts[0]);
-                        const month = parseInt(parts[1]) - 1; // Monat ist 0-basiert in JS
+                        const month = parseInt(parts[1]) - 1;
                         const year = parseInt(parts[2]);
                         
-                        expiryDateTime = new Date(year, month, day, 23, 59, 59); // Ende des Tages
+                        expiryDateTime = new Date(year, month, day, 23, 59, 59);
                     }
                 }
                 
@@ -783,18 +804,16 @@
                 
             } catch (error) {
                 console.error('Fehler beim Parsen des Ablaufdatums:', error);
-                return false; // Bei Fehler nicht blockieren
+                return false;
             }
         }
         
         function startDownload() {
-            // Verhindere doppelte Downloads
             if (downloadStarted) {
                 console.log('⚠️ Download bereits gestartet - überspringe weiteren Download');
                 return;
             }
             
-            // Prüfe ob Download abgelaufen ist
             if (isDownloadExpired()) {
                 console.log('⚠️ Download-Link ist abgelaufen');
                 showError('Der Download-Link ist abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
@@ -803,7 +822,7 @@
             
             try {
                 downloadStarted = true;
-                console.log('🚀 Starte Download (nur technisch notwendige Funktionen)');
+                console.log('🚀 Starte Download');
                 
                 // Download über versteckten iframe starten
                 document.getElementById('downloadFrame').src = downloadUrl;
