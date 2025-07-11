@@ -105,6 +105,7 @@
             font-size: 14px;
             line-height: 1.4;
         }
+
         .footer {
             margin-top: 30px;
             color: #888;
@@ -480,33 +481,10 @@
         </div>
         
         <div class="job-info" id="jobInfo" style="display: none;">
-            <div class="job-name" id="file-name">📁 Ihre Datei</div>
+            <div class="job-name" id="jobName">📁 Ihr Auftrag</div>
             <div class="job-details">
-                <strong>Gültig bis:</strong> <span id="expiry-date">-</span>
+                <strong>Gültig bis:</strong> <span id="expiryDate">-</span>
             </div>
-        </div>
-        
-        <div id="downloadSection" style="display: none; margin: 20px 0;">
-            <button id="downloadBtn" onclick="startManualDownload()" style="
-                background: linear-gradient(135deg, #00a8e6 0%, #e91e63 100%);
-                color: white;
-                border: none;
-                padding: 15px 30px;
-                font-size: 16px;
-                font-weight: 600;
-                border-radius: 12px;
-                cursor: pointer;
-                box-shadow: 0 4px 12px rgba(0, 168, 230, 0.3);
-                transition: all 0.3s ease;
-                margin: 10px 0;
-                width: 100%;
-                max-width: 300px;
-            ">
-                📥 Datei herunterladen
-            </button>
-            <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                Der Download startet automatisch. Falls nicht, klicken Sie den Button oben.
-            </p>
         </div>
         
         <div class="error" id="errorSection" style="display: none;">
@@ -598,175 +576,23 @@
             return urlParams.get(name);
         }
         
-        // Client-Side Entschlüsselung
-        function decryptJobToken(encryptedToken) {
-            try {
-                const encryptionKey = "DruckereiMaeserGmbH2025!";
-                
-                // Base64URL zu Base64 konvertieren
-                let base64 = encryptedToken.replace(/-/g, '+').replace(/_/g, '/');
-                while (base64.length % 4) {
-                    base64 += '=';
-                }
-                
-                // Base64 zu Bytes
-                const encryptedBytes = atob(base64);
-                const keyBytes = new TextEncoder().encode(encryptionKey);
-                
-                // XOR-Entschlüsselung
-                const decryptedBytes = [];
-                for (let i = 0; i < encryptedBytes.length; i++) {
-                    const keyIndex = i % keyBytes.length;
-                    decryptedBytes.push(encryptedBytes.charCodeAt(i) ^ keyBytes[keyIndex]);
-                }
-                
-                // Bytes zu String
-                const decryptedString = new TextDecoder().decode(new Uint8Array(decryptedBytes));
-                return JSON.parse(decryptedString);
-            } catch (error) {
-                console.error('Token-Entschlüsselung fehlgeschlagen:', error);
-                return null;
-            }
-        }
-        
-        // Job-Daten aus Token laden
-        function getJobDataFromToken(token) {
-            if (!token) return null;
-            return decryptJobToken(token);
-        }
-        
-        // Vereinfachte UI - NUR minimale Informationen anzeigen
-        function loadJobName() {
-            const jobToken = getUrlParameter('token');
-            const expiry = getUrlParameter('expiry');
-            
-            try {
-                const jobData = getJobDataFromToken(jobToken);
-                if (jobData) {
-                    // Dateiname schöner anzeigen
-                    const fileNameElement = document.getElementById('file-name');
-                    if (fileNameElement && jobData.zipFileName) {
-                        // Dateiname ohne Pfad und mit schöner Formatierung
-                        const cleanFileName = jobData.zipFileName.replace(/^.*[\\\/]/, '');
-                        fileNameElement.innerHTML = `
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 24px;">📁</span>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 5px;">
-                                        ${cleanFileName}
-                                    </div>
-                                    <div style="font-size: 12px; color: #666;">
-                                        Bereit zum Download
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    // Ablaufzeit anzeigen
-                    const expiryElement = document.getElementById('expiry-date');
-                    if (expiryElement && expiry) {
-                        const expiryDate = new Date(decodeURIComponent(expiry));
-                        expiryElement.textContent = expiryDate.toLocaleString('de-DE');
-                    }
-                    
-                    // Job-Info und Download-Button anzeigen
-                    const jobInfoElement = document.getElementById('jobInfo');
-                    const downloadSectionElement = document.getElementById('downloadSection');
-                    if (jobInfoElement) {
-                        jobInfoElement.style.display = 'block';
-                    }
-                    if (downloadSectionElement) {
-                        downloadSectionElement.style.display = 'block';
-                    }
-                } else {
-                    // Fallback für alte URLs ohne Token
-                    const oldJobParam = getUrlParameter('job');
-                    if (oldJobParam) {
-                        console.warn('⚠️ Alte URL-Struktur erkannt! Parameter "job" gefunden:', oldJobParam);
-                        const cleanJobName = decodeURIComponent(oldJobParam);
-                        document.getElementById('file-name').innerHTML = `
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 24px;">📁</span>
-                                <div>
-                                    <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 5px;">
-                                        ${cleanJobName}
-                                    </div>
-                                    <div style="font-size: 12px; color: #666;">
-                                        Bereit zum Download
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        
-                        // Ablaufzeit anzeigen
-                        const expiryElement = document.getElementById('expiry-date');
-                        const expiry = getUrlParameter('expiry');
-                        if (expiryElement && expiry) {
-                            const expiryDate = new Date(decodeURIComponent(expiry));
-                            expiryElement.textContent = expiryDate.toLocaleString('de-DE');
-                        }
-                        
-                        // Job-Info und Download-Button anzeigen
-                        const jobInfoElement = document.getElementById('jobInfo');
-                        const downloadSectionElement = document.getElementById('downloadSection');
-                        if (jobInfoElement) {
-                            jobInfoElement.style.display = 'block';
-                        }
-                        if (downloadSectionElement) {
-                            downloadSectionElement.style.display = 'block';
-                        }
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Fehler beim Laden der Job-Daten:', error);
-                
-                // Fallback für alte URLs
-                const oldJobParam = getUrlParameter('job');
-                if (oldJobParam) {
-                    const cleanJobName = decodeURIComponent(oldJobParam);
-                    document.getElementById('file-name').innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 24px;">📁</span>
-                            <div>
-                                <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 5px;">
-                                    ${cleanJobName}
-                                </div>
-                                <div style="font-size: 12px; color: #666;">
-                                    Bereit zum Download
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    document.getElementById('jobInfo').style.display = 'block';
-                    document.getElementById('downloadSection').style.display = 'block';
-                }
-            }
-        }
-        
         // Parameter extrahieren
         const downloadUrl = getUrlParameter('download');
-        const jobToken = getUrlParameter('token');
+        const jobName = getUrlParameter('job');
         const expiryDate = getUrlParameter('expiry');
         
         // DEBUG: Parameter anzeigen
         console.log('URL Parameters Debug:');
         console.log('- download:', downloadUrl);
-        console.log('- token:', jobToken);
+        console.log('- job:', jobName);
         console.log('- expiry:', expiryDate);
-        
-        // Überprüfe ob alte Parameter noch vorhanden sind
-        const oldJobParam = getUrlParameter('job');
-        if (oldJobParam) {
-            console.warn('⚠️ Alte URL-Struktur erkannt! Parameter "job" gefunden:', oldJobParam);
-            console.warn('⚠️ System verwendet noch nicht die neue Token-Struktur!');
-        }
         
         const statusElement = document.getElementById('status');
         const statusTextElement = document.getElementById('statusText');
         const spinnerElement = document.getElementById('spinner');
         const jobInfoElement = document.getElementById('jobInfo');
+        const jobNameElement = document.getElementById('jobName');
+        const expiryDateElement = document.getElementById('expiryDate');
         const errorSectionElement = document.getElementById('errorSection');
         const errorMessageElement = document.getElementById('errorMessage');
         
@@ -797,6 +623,7 @@
             }
             
             try {
+                // Ablaufdatum parsen (Format: DD.MM.YYYY HH:MM, DD.MM.YYYY oder YYYY-MM-DD HH:MM)
                 const expiryDateDecoded = decodeURIComponent(expiryDate);
                 
                 let expiryDateTime;
@@ -804,6 +631,7 @@
                 // Prüfe ob ISO-Format (YYYY-MM-DD HH:MM oder YYYY-MM-DD)
                 if (expiryDateDecoded.includes('-')) {
                     if (expiryDateDecoded.includes(' ') && expiryDateDecoded.includes(':')) {
+                        // Format: YYYY-MM-DD HH:MM
                         const [datePart, timePart] = expiryDateDecoded.split(' ');
                         const dateParts = datePart.split('-');
                         const timeParts = timePart.split(':');
@@ -814,13 +642,15 @@
                         }
                         
                         const year = parseInt(dateParts[0]);
-                        const month = parseInt(dateParts[1]) - 1;
+                        const month = parseInt(dateParts[1]) - 1; // Monat ist 0-basiert in JS
                         const day = parseInt(dateParts[2]);
                         const hour = parseInt(timeParts[0]);
                         const minute = parseInt(timeParts[1]);
                         
                         expiryDateTime = new Date(year, month, day, hour, minute, 0);
+                        
                     } else {
+                        // Format: YYYY-MM-DD
                         const parts = expiryDateDecoded.split('-');
                         
                         if (parts.length !== 3) {
@@ -829,14 +659,16 @@
                         }
                         
                         const year = parseInt(parts[0]);
-                        const month = parseInt(parts[1]) - 1;
+                        const month = parseInt(parts[1]) - 1; // Monat ist 0-basiert in JS
                         const day = parseInt(parts[2]);
                         
-                        expiryDateTime = new Date(year, month, day, 23, 59, 59);
+                        expiryDateTime = new Date(year, month, day, 23, 59, 59); // Ende des Tages
                     }
+                    
                 } else {
                     // Deutsches Format (DD.MM.YYYY HH:MM oder DD.MM.YYYY)
                     if (expiryDateDecoded.includes(' ') && expiryDateDecoded.includes(':')) {
+                        // Format: DD.MM.YYYY HH:MM
                         const [datePart, timePart] = expiryDateDecoded.split(' ');
                         const dateParts = datePart.split('.');
                         const timeParts = timePart.split(':');
@@ -847,13 +679,15 @@
                         }
                         
                         const day = parseInt(dateParts[0]);
-                        const month = parseInt(dateParts[1]) - 1;
+                        const month = parseInt(dateParts[1]) - 1; // Monat ist 0-basiert in JS
                         const year = parseInt(dateParts[2]);
                         const hour = parseInt(timeParts[0]);
                         const minute = parseInt(timeParts[1]);
                         
                         expiryDateTime = new Date(year, month, day, hour, minute, 0);
+                        
                     } else {
+                        // Format: DD.MM.YYYY
                         const parts = expiryDateDecoded.split('.');
                         
                         if (parts.length !== 3) {
@@ -862,10 +696,10 @@
                         }
                         
                         const day = parseInt(parts[0]);
-                        const month = parseInt(parts[1]) - 1;
+                        const month = parseInt(parts[1]) - 1; // Monat ist 0-basiert in JS
                         const year = parseInt(parts[2]);
                         
-                        expiryDateTime = new Date(year, month, day, 23, 59, 59);
+                        expiryDateTime = new Date(year, month, day, 23, 59, 59); // Ende des Tages
                     }
                 }
                 
@@ -879,16 +713,18 @@
                 
             } catch (error) {
                 console.error('Fehler beim Parsen des Ablaufdatums:', error);
-                return false;
+                return false; // Bei Fehler nicht blockieren
             }
         }
         
         function startDownload() {
+            // Verhindere doppelte Downloads
             if (downloadStarted) {
                 console.log('⚠️ Download bereits gestartet - überspringe weiteren Download');
                 return;
             }
             
+            // Prüfe ob Download abgelaufen ist
             if (isDownloadExpired()) {
                 console.log('⚠️ Download-Link ist abgelaufen');
                 showError('Der Download-Link ist abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
@@ -897,57 +733,10 @@
             
             try {
                 downloadStarted = true;
-                console.log('🚀 Starte Download');
+                console.log('🚀 Starte Download (nur technisch notwendige Funktionen)');
                 
                 // Download über versteckten iframe starten
                 document.getElementById('downloadFrame').src = downloadUrl;
-                showSuccess();
-                
-            } catch (error) {
-                downloadStarted = false;
-                console.error('Download-Fehler:', error);
-                showError('Download konnte nicht gestartet werden.');
-            }
-        }
-        
-        // Manueller Download-Button
-        function startManualDownload() {
-            if (downloadStarted) {
-                console.log('⚠️ Download bereits gestartet - überspringe weiteren Download');
-                return;
-            }
-            
-            if (isDownloadExpired()) {
-                console.log('⚠️ Download-Link ist abgelaufen');
-                showError('Der Download-Link ist abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
-                return;
-            }
-            
-            try {
-                downloadStarted = true;
-                console.log('🚀 Starte manuellen Download');
-                
-                // Versuche mit originaler Dateiname zu downloaden
-                const jobToken = getUrlParameter('token');
-                const jobData = getJobDataFromToken(jobToken);
-                
-                if (jobData && jobData.zipFileName) {
-                    // Erstelle einen temporären Download-Link mit dem originalen Dateinamen
-                    const link = document.createElement('a');
-                    link.href = downloadUrl;
-                    link.download = jobData.zipFileName; // Originaler Dateiname
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    console.log('✅ Download gestartet mit originalem Dateinamen:', jobData.zipFileName);
-                } else {
-                    // Fallback: Normaler Download
-                    document.getElementById('downloadFrame').src = downloadUrl;
-                    console.log('✅ Download gestartet (Fallback)');
-                }
-                
                 showSuccess();
                 
             } catch (error) {
@@ -982,8 +771,14 @@
                 
                 showError(errorMsg);
             } else {
-                // Job-Informationen laden und anzeigen
-                loadJobName();
+                // Job-Informationen anzeigen
+                if (jobName) {
+                    jobNameElement.textContent = '📁 ' + decodeURIComponent(jobName);
+                }
+                if (expiryDate) {
+                    expiryDateElement.textContent = decodeURIComponent(expiryDate);
+                }
+                jobInfoElement.style.display = 'block';
                 
                 // Download automatisch starten (technisch notwendig für Download-Service)
                 setTimeout(function() {
