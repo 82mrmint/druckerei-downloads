@@ -577,6 +577,77 @@
             return urlParams.get(name);
         }
         
+        // Base64URL zu normaler Base64 konvertieren
+        function base64UrlDecode(base64Url) {
+            // Ersetze URL-sichere Zeichen
+            let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            
+            // Padding hinzufügen falls nötig
+            const padding = base64.length % 4;
+            if (padding) {
+                base64 += '='.repeat(4 - padding);
+            }
+            
+            return atob(base64);
+        }
+        
+        // XOR-Entschlüsselung (gleiche Logik wie im PowerShell-Script)
+        function simpleDecryption(encryptedBase64, key) {
+            try {
+                const encryptedBytes = atob(encryptedBase64);
+                const keyBytes = new TextEncoder().encode(key);
+                const result = [];
+                
+                for (let i = 0; i < encryptedBytes.length; i++) {
+                    const keyIndex = i % keyBytes.length;
+                    result.push(String.fromCharCode(encryptedBytes.charCodeAt(i) ^ keyBytes[keyIndex]));
+                }
+                
+                return result.join('');
+            } catch (error) {
+                console.error('Fehler bei XOR-Entschlüsselung:', error);
+                return null;
+            }
+        }
+        
+        // Token dekodieren und Job-Namen extrahieren
+        function decryptJobToken(token) {
+            try {
+                console.log('🔐 Starte Token-Dekodierung...');
+                
+                // Schritt 1: Base64URL dekodieren
+                const encryptedData = base64UrlDecode(token);
+                console.log('✓ Base64URL dekodiert');
+                
+                // Schritt 2: XOR-Entschlüsselung mit dem gleichen Schlüssel wie im PowerShell-Script
+                const encryptionKey = "DruckereImaeserGmbH2025!";
+                const decryptedJson = simpleDecryption(encryptedData, encryptionKey);
+                
+                if (!decryptedJson) {
+                    console.log('❌ XOR-Entschlüsselung fehlgeschlagen');
+                    return null;
+                }
+                
+                console.log('✓ XOR-Entschlüsselung erfolgreich');
+                console.log('📄 Entschlüsselter JSON:', decryptedJson);
+                
+                // Schritt 3: JSON parsen
+                const tokenData = JSON.parse(decryptedJson);
+                
+                if (tokenData.jobName) {
+                    console.log('✅ Job-Name im Token gefunden:', tokenData.jobName);
+                    return tokenData.jobName;
+                } else {
+                    console.log('⚠️ Kein jobName im Token gefunden');
+                    return null;
+                }
+                
+            } catch (error) {
+                console.error('❌ Token-Dekodierung fehlgeschlagen:', error);
+                return null;
+            }
+        }
+        
         // Parameter extrahieren
         const downloadUrl = getUrlParameter('download');
         let jobName = getUrlParameter('job');
@@ -585,8 +656,23 @@
         
         // Wenn kein job-Parameter vorhanden ist, aber token vorhanden ist (anonymisiertes Script)
         if (!jobName && jobToken) {
-            // Versuche Job-Namen aus der Download-URL zu extrahieren
-            if (downloadUrl) {
+            console.log('🔍 Anonymisiertes Script erkannt - versuche Token zu dekodieren...');
+            
+            // Zuerst versuchen, das verschlüsselte Token zu dekodieren
+            try {
+                const decryptedJobName = decryptJobToken(jobToken);
+                if (decryptedJobName && decryptedJobName.length > 3) {
+                    jobName = decryptedJobName;
+                    console.log('✅ Job-Name aus verschlüsseltem Token extrahiert:', jobName);
+                } else {
+                    console.log('⚠️ Token-Dekodierung ergab keinen verwendbaren Namen');
+                }
+            } catch (error) {
+                console.log('⚠️ Token-Dekodierung fehlgeschlagen:', error);
+            }
+            
+            // Fallback: Versuche Job-Namen aus der Download-URL zu extrahieren
+            if (!jobName && downloadUrl) {
                 try {
                     const decodedUrl = decodeURIComponent(downloadUrl);
                     console.log('Versuche Job-Namen aus URL zu extrahieren:', decodedUrl);
