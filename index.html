@@ -841,6 +841,7 @@
                 if (expiryDateDecoded.includes('-')) {
                     if (expiryDateDecoded.includes(' ') && expiryDateDecoded.includes(':')) {
                         // Format: YYYY-MM-DD HH:MM (ohne Sekunden)
+                        // WICHTIG: Interpretiere als UTC-Zeit für SAS-Token Kompatibilität
                         const [datePart, timePart] = expiryDateDecoded.split(' ');
                         const dateParts = datePart.split('-');
                         const timeParts = timePart.split(':');
@@ -858,7 +859,9 @@
                         const minute = parseInt(timeParts[1]);
                         const second = timeParts.length === 3 ? parseInt(timeParts[2]) : 0; // Sekunden optional
                         
-                        expiryDateTime = new Date(year, month, day, hour, minute, second);
+                        // UTC-Konstruktor verwenden für SAS-Token Kompatibilität
+                        expiryDateTime = new Date(Date.UTC(year, month, day, hour, minute, second));
+                        console.log('🌍 UTC-Interpretation verwendet für SAS-Token Kompatibilität');
                         
                     } else {
                         // Format: YYYY-MM-DD
@@ -873,7 +876,9 @@
                         const month = parseInt(parts[1]) - 1; // Monat ist 0-basiert in JS
                         const day = parseInt(parts[2]);
                         
-                        expiryDateTime = new Date(year, month, day, 23, 59, 59); // Ende des Tages
+                        // UTC-Konstruktor für Ende des Tages (SAS-Token Kompatibilität)
+                        expiryDateTime = new Date(Date.UTC(year, month, day, 23, 59, 59));
+                        console.log('🌍 UTC-Interpretation für Datum ohne Zeit verwendet');
                     }
                     
                 } else {
