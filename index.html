@@ -767,12 +767,14 @@
         
         function isDownloadExpired() {
             if (!expiryDate) {
+                console.log('⚠️ Kein Ablaufdatum vorhanden - Download erlaubt');
                 return false; // Kein Ablaufdatum vorhanden
             }
             
             try {
                 // Ablaufdatum parsen (Format: DD.MM.YYYY HH:MM, DD.MM.YYYY oder YYYY-MM-DD HH:MM)
                 const expiryDateDecoded = decodeURIComponent(expiryDate);
+                console.log('📅 Parse Ablaufdatum:', expiryDateDecoded);
                 
                 let expiryDateTime;
                 
@@ -787,7 +789,7 @@
                         // Flexiblere Validierung - unterstütze HH:MM und HH:MM:SS
                         if (dateParts.length !== 3 || (timeParts.length !== 2 && timeParts.length !== 3)) {
                             console.log('⚠️ Unbekanntes ISO Datum/Zeit-Format:', expiryDateDecoded);
-                            return false;
+                            return false; // Bei Parsing-Fehlern Download erlauben
                         }
                         
                         const year = parseInt(dateParts[0]);
@@ -805,7 +807,7 @@
                         
                         if (parts.length !== 3) {
                             console.log('⚠️ Unbekanntes ISO Datumsformat:', expiryDateDecoded);
-                            return false;
+                            return false; // Bei Parsing-Fehlern Download erlauben
                         }
                         
                         const year = parseInt(parts[0]);
@@ -825,7 +827,7 @@
                         
                         if (dateParts.length !== 3 || timeParts.length !== 2) {
                             console.log('⚠️ Unbekanntes Datum/Zeit-Format:', expiryDateDecoded);
-                            return false;
+                            return false; // Bei Parsing-Fehlern Download erlauben
                         }
                         
                         const day = parseInt(dateParts[0]);
@@ -842,7 +844,7 @@
                         
                         if (parts.length !== 3) {
                             console.log('⚠️ Unbekanntes Datumsformat:', expiryDateDecoded);
-                            return false;
+                            return false; // Bei Parsing-Fehlern Download erlauben
                         }
                         
                         const day = parseInt(parts[0]);
@@ -855,14 +857,27 @@
                 
                 const currentDateTime = new Date();
                 
-                console.log('📅 Ablaufdatum:', expiryDateTime.toLocaleString('de-DE'));
-                console.log('📅 Aktuelles Datum:', currentDateTime.toLocaleString('de-DE'));
-                console.log('📅 Abgelaufen?', currentDateTime > expiryDateTime);
+                // ROBUSTE PRÜFUNG: Berücksichtige SAS-Token Toleranz
+                // SAS-Token können bis zu 60 Sekunden später ablaufen als der expiry-Parameter
+                // Dies ist normal bei der Token-Generierung und sollte akzeptiert werden
+                const toleranceMs = 60 * 1000; // 60 Sekunden Toleranz
+                const expiryWithTolerance = new Date(expiryDateTime.getTime() + toleranceMs);
                 
-                return currentDateTime > expiryDateTime;
+                console.log('📅 Ablaufdatum (Original):', expiryDateTime.toLocaleString('de-DE'));
+                console.log('📅 Ablaufdatum (mit 60s Toleranz):', expiryWithTolerance.toLocaleString('de-DE'));
+                console.log('📅 Aktuelles Datum:', currentDateTime.toLocaleString('de-DE'));
+                console.log('📅 Abgelaufen (ohne Toleranz)?', currentDateTime > expiryDateTime);
+                console.log('📅 Abgelaufen (mit Toleranz)?', currentDateTime > expiryWithTolerance);
+                
+                // Verwende die tolerante Prüfung für bessere SAS-Token Kompatibilität
+                const isExpired = currentDateTime > expiryWithTolerance;
+                console.log('✅ Final: Download abgelaufen?', isExpired);
+                
+                return isExpired;
                 
             } catch (error) {
                 console.error('Fehler beim Parsen des Ablaufdatums:', error);
+                console.log('⚠️ Parsing-Fehler - erlaube Download als Fallback');
                 return false; // Bei Fehler nicht blockieren
             }
         }
