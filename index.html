@@ -735,6 +735,43 @@
         console.log('- expiry:', expiryDate);
         console.log('- expiry (decoded):', expiryDate ? decodeURIComponent(expiryDate) : 'null');
         
+        // DEBUG: SAS-Token Timestamp-Mismatch Test
+        if (downloadUrl && expiryDate) {
+            try {
+                const expiryDecoded = decodeURIComponent(expiryDate);
+                console.log('\n🔍 TIMESTAMP MISMATCH DEBUG:');
+                console.log('expiry-Parameter (Local):', expiryDecoded);
+                
+                // Extrahiere SAS-Token se-Parameter aus der Download-URL
+                const sasMatch = downloadUrl.match(/[?&]se=([^&]*)/);
+                if (sasMatch) {
+                    const sasExpiry = decodeURIComponent(sasMatch[1]);
+                    console.log('SAS se-Parameter (UTC):', sasExpiry);
+                    
+                    // Parse beide Timestamps
+                    const expiryTime = new Date(expiryDecoded).getTime();
+                    const sasTime = new Date(sasExpiry).getTime();
+                    const diffMs = sasTime - expiryTime;
+                    
+                    console.log('expiry-Zeit (ms):', expiryTime);
+                    console.log('SAS-Zeit (ms):', sasTime);
+                    console.log('Differenz (ms):', diffMs);
+                    console.log('Differenz (Sekunden):', Math.round(diffMs / 1000));
+                    
+                    if (Math.abs(diffMs) < 60000) {
+                        console.log('✅ Differenz < 60s - wird von Toleranz-Logik abgefangen');
+                    } else {
+                        console.log('⚠️ Differenz > 60s - könnte problematisch sein');
+                    }
+                } else {
+                    console.log('⚠️ Kein SAS se-Parameter in Download-URL gefunden');
+                }
+            } catch (error) {
+                console.log('⚠️ Debug-Timestamp-Analyse fehlgeschlagen:', error);
+            }
+            console.log(''); // Leerzeile für bessere Lesbarkeit
+        }
+        
         const statusElement = document.getElementById('status');
         const statusTextElement = document.getElementById('statusText');
         const spinnerElement = document.getElementById('spinner');
