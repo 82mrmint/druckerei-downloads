@@ -601,7 +601,6 @@
                 
                 return result.join('');
             } catch (error) {
-                console.error('Fehler bei XOR-Entschlüsselung:', error);
                 return null;
             }
         }
@@ -609,37 +608,27 @@
         // Token dekodieren und Job-Namen extrahieren
         function decryptJobToken(token) {
             try {
-                console.log('🔐 Starte Token-Dekodierung...');
-                
                 // Schritt 1: Base64URL dekodieren
                 const encryptedData = base64UrlDecode(token);
-                console.log('✓ Base64URL dekodiert');
                 
                 // Schritt 2: XOR-Entschlüsselung mit dem gleichen Schlüssel wie im PowerShell-Script
                 const encryptionKey = "DruckereImaeserGmbH2025!";
                 const decryptedJson = simpleDecryption(encryptedData, encryptionKey);
                 
                 if (!decryptedJson) {
-                    console.log('❌ XOR-Entschlüsselung fehlgeschlagen');
                     return null;
                 }
-                
-                console.log('✓ XOR-Entschlüsselung erfolgreich');
-                console.log('📄 Entschlüsselter JSON:', decryptedJson);
                 
                 // Schritt 3: JSON parsen
                 const tokenData = JSON.parse(decryptedJson);
                 
                 if (tokenData.jobName) {
-                    console.log('✅ Job-Name im Token gefunden:', tokenData.jobName);
                     return tokenData.jobName;
                 } else {
-                    console.log('⚠️ Kein jobName im Token gefunden');
                     return null;
                 }
                 
             } catch (error) {
-                console.error('❌ Token-Dekodierung fehlgeschlagen:', error);
                 return null;
             }
         }
@@ -652,36 +641,28 @@
         
         // Wenn kein job-Parameter vorhanden ist, aber token vorhanden ist (anonymisiertes Script)
         if (!jobName && jobToken) {
-            console.log('🔍 Anonymisiertes Script erkannt - versuche Token zu dekodieren...');
-            
             // Zuerst versuchen, das verschlüsselte Token zu dekodieren
             try {
                 const decryptedJobName = decryptJobToken(jobToken);
                 if (decryptedJobName && decryptedJobName.length > 3) {
                     jobName = decryptedJobName;
-                    console.log('✅ Job-Name aus verschlüsseltem Token extrahiert:', jobName);
-                } else {
-                    console.log('⚠️ Token-Dekodierung ergab keinen verwendbaren Namen');
                 }
             } catch (error) {
-                console.log('⚠️ Token-Dekodierung fehlgeschlagen:', error);
+                // Token-Dekodierung fehlgeschlagen - verwende Fallback
             }
             
             // Fallback: Versuche Job-Namen aus der Download-URL zu extrahieren
             if (!jobName && downloadUrl) {
                 try {
                     const decodedUrl = decodeURIComponent(downloadUrl);
-                    console.log('Versuche Job-Namen aus URL zu extrahieren:', decodedUrl);
                     
                     // Suche nach Dateinamen-Pattern im URL (nach letztem / aber vor .zip)
                     const urlMatch = decodedUrl.match(/\/([^\/]+)\.zip(\?|$)/i);
                     if (urlMatch && urlMatch[1]) {
                         let extractedName = urlMatch[1];
-                        console.log('Ursprünglicher Dateiname:', extractedName);
                         
                         // Entferne gemeinsame Präfixe
                         extractedName = extractedName.replace(/^Druckerei_Maeser_GmbH_/, '');
-                        console.log('Nach Druckerei-Präfix-Entfernung:', extractedName);
                         
                         // Entferne verschiedene Varianten von anonymen IDs:
                         // Pattern 1: 14 Ziffern + 8 Zeichen (ursprünglich)
@@ -695,22 +676,16 @@
                             extractedName = '';
                         }
                         
-                        console.log('Nach anonymer ID-Entfernung:', extractedName);
-                        
                         // Unterstriche durch Leerzeichen ersetzen
                         extractedName = extractedName.replace(/_/g, ' ');
-                        console.log('Nach Unterstrich-Ersetzung:', extractedName);
                         
                         // Wenn der extrahierte Name sinnvoll aussieht, verwende ihn
                         if (extractedName.length > 3 && !extractedName.match(/^[0-9A-Z]+$/)) {
                             jobName = extractedName;
-                            console.log('✓ Job-Name aus Download-URL extrahiert:', jobName);
-                        } else {
-                            console.log('⚠️ Extrahierter Name nicht verwendbar:', extractedName);
                         }
                     }
                 } catch (error) {
-                    console.log('⚠️ Fehler beim Extrahieren des Job-Namens aus URL:', error);
+                    // URL-Parsing fehlgeschlagen - verwende Fallback
                 }
             }
             
@@ -723,76 +698,10 @@
                     day: '2-digit'
                 });
                 jobName = `Auftrag vom ${formattedDate}`;
-                console.log('✓ Verwende Fallback Job-Namen:', jobName);
             }
         }
         
-        // DEBUG: Parameter anzeigen
-        console.log('URL Parameters Debug:');
-        console.log('- download:', downloadUrl);
-        console.log('- job:', jobName);
-        console.log('- token:', jobToken);
-        console.log('- expiry:', expiryDate);
-        console.log('- expiry (decoded):', expiryDate ? decodeURIComponent(expiryDate) : 'null');
-        
-        // DEBUG: SAS-Token Timestamp-Mismatch Test
-        if (downloadUrl && expiryDate) {
-            try {
-                const expiryDecoded = decodeURIComponent(expiryDate);
-                console.log('\n🔍 ERWEITERTE TIMESTAMP-ANALYSE:');
-                console.log('expiry-Parameter (Original):', expiryDecoded);
-                
-                // Extrahiere SAS-Token se-Parameter aus der Download-URL
-                const sasMatch = downloadUrl.match(/[?&]se=([^&]*)/);
-                if (sasMatch) {
-                    const sasExpiry = decodeURIComponent(sasMatch[1]);
-                    console.log('SAS se-Parameter (UTC):', sasExpiry);
-                    
-                    // TIMEZONE-ANALYSE: Parse expiry als lokale Zeit vs UTC
-                    const expiryAsLocal = new Date(expiryDecoded);
-                    const expiryAsUTC = new Date(expiryDecoded + 'Z'); // Force UTC interpretation
-                    const sasTime = new Date(sasExpiry);
-                    
-                    console.log('\n📊 TIMEZONE-VERGLEICH:');
-                    console.log('expiry als lokale Zeit:', expiryAsLocal.toISOString(), '(' + expiryAsLocal.getTime() + ')');
-                    console.log('expiry als UTC-Zeit:', expiryAsUTC.toISOString(), '(' + expiryAsUTC.getTime() + ')');
-                    console.log('SAS se als UTC-Zeit:', sasTime.toISOString(), '(' + sasTime.getTime() + ')');
-                    
-                    const diffLocalMs = sasTime.getTime() - expiryAsLocal.getTime();
-                    const diffUTCMs = sasTime.getTime() - expiryAsUTC.getTime();
-                    
-                    console.log('\n🔍 DIFFERENZ-ANALYSE:');
-                    console.log('Differenz (expiry als lokal vs SAS):', Math.round(diffLocalMs / 1000) + 's (' + diffLocalMs + 'ms)');
-                    console.log('Differenz (expiry als UTC vs SAS):', Math.round(diffUTCMs / 1000) + 's (' + diffUTCMs + 'ms)');
-                    
-                    // Browser-Timezone-Info
-                    const browserOffset = new Date().getTimezoneOffset();
-                    console.log('\n🌍 BROWSER-TIMEZONE:');
-                    console.log('Browser Timezone Offset:', browserOffset + ' Minuten (' + (browserOffset / 60) + ' Stunden)');
-                    console.log('Browser Timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
-                    
-                    // Empfehlung basierend auf Analyse
-                    if (Math.abs(diffUTCMs) < Math.abs(diffLocalMs)) {
-                        console.log('\n💡 EMPFEHLUNG: expiry-Parameter sollte als UTC interpretiert werden!');
-                        console.log('   UTC-Differenz (' + Math.round(diffUTCMs / 1000) + 's) ist kleiner als lokale Differenz (' + Math.round(diffLocalMs / 1000) + 's)');
-                    } else {
-                        console.log('\n💡 EMPFEHLUNG: Aktuelle lokale Zeit-Interpretation ist korrekt');
-                    }
-                    
-                    if (Math.abs(diffUTCMs) < 60000) {
-                        console.log('✅ UTC-Interpretation: Differenz < 60s - kompatibel mit Toleranz-Logik');
-                    } else {
-                        console.log('⚠️ UTC-Interpretation: Differenz > 60s - Toleranz-Logik muss angepasst werden');
-                    }
-                    
-                } else {
-                    console.log('⚠️ Kein SAS se-Parameter in Download-URL gefunden');
-                }
-            } catch (error) {
-                console.log('⚠️ Debug-Timestamp-Analyse fehlgeschlagen:', error);
-            }
-            console.log(''); // Leerzeile für bessere Lesbarkeit
-        }
+
         
         const statusElement = document.getElementById('status');
         const statusTextElement = document.getElementById('statusText');
@@ -826,14 +735,12 @@
         
         function isDownloadExpired() {
             if (!expiryDate) {
-                console.log('⚠️ Kein Ablaufdatum vorhanden - Download erlaubt');
                 return false; // Kein Ablaufdatum vorhanden
             }
             
             try {
                 // Ablaufdatum parsen (Format: DD.MM.YYYY HH:MM, DD.MM.YYYY oder YYYY-MM-DD HH:MM)
                 const expiryDateDecoded = decodeURIComponent(expiryDate);
-                console.log('📅 Parse Ablaufdatum:', expiryDateDecoded);
                 
                 let expiryDateTime;
                 
@@ -848,7 +755,6 @@
                         
                         // Flexiblere Validierung - unterstütze HH:MM und HH:MM:SS
                         if (dateParts.length !== 3 || (timeParts.length !== 2 && timeParts.length !== 3)) {
-                            console.log('⚠️ Unbekanntes ISO Datum/Zeit-Format:', expiryDateDecoded);
                             return false; // Bei Parsing-Fehlern Download erlauben
                         }
                         
@@ -861,14 +767,12 @@
                         
                         // UTC-Konstruktor verwenden für SAS-Token Kompatibilität
                         expiryDateTime = new Date(Date.UTC(year, month, day, hour, minute, second));
-                        console.log('🌍 UTC-Interpretation verwendet für SAS-Token Kompatibilität');
                         
                     } else {
                         // Format: YYYY-MM-DD
                         const parts = expiryDateDecoded.split('-');
                         
                         if (parts.length !== 3) {
-                            console.log('⚠️ Unbekanntes ISO Datumsformat:', expiryDateDecoded);
                             return false; // Bei Parsing-Fehlern Download erlauben
                         }
                         
@@ -878,7 +782,6 @@
                         
                         // UTC-Konstruktor für Ende des Tages (SAS-Token Kompatibilität)
                         expiryDateTime = new Date(Date.UTC(year, month, day, 23, 59, 59));
-                        console.log('🌍 UTC-Interpretation für Datum ohne Zeit verwendet');
                     }
                     
                 } else {
@@ -890,7 +793,6 @@
                         const timeParts = timePart.split(':');
                         
                         if (dateParts.length !== 3 || timeParts.length !== 2) {
-                            console.log('⚠️ Unbekanntes Datum/Zeit-Format:', expiryDateDecoded);
                             return false; // Bei Parsing-Fehlern Download erlauben
                         }
                         
@@ -907,7 +809,6 @@
                         const parts = expiryDateDecoded.split('.');
                         
                         if (parts.length !== 3) {
-                            console.log('⚠️ Unbekanntes Datumsformat:', expiryDateDecoded);
                             return false; // Bei Parsing-Fehlern Download erlauben
                         }
                         
@@ -927,21 +828,12 @@
                 const toleranceMs = 60 * 1000; // 60 Sekunden Toleranz
                 const expiryWithTolerance = new Date(expiryDateTime.getTime() + toleranceMs);
                 
-                console.log('📅 Ablaufdatum (Original):', expiryDateTime.toLocaleString('de-DE'));
-                console.log('📅 Ablaufdatum (mit 60s Toleranz):', expiryWithTolerance.toLocaleString('de-DE'));
-                console.log('📅 Aktuelles Datum:', currentDateTime.toLocaleString('de-DE'));
-                console.log('📅 Abgelaufen (ohne Toleranz)?', currentDateTime > expiryDateTime);
-                console.log('📅 Abgelaufen (mit Toleranz)?', currentDateTime > expiryWithTolerance);
-                
                 // Verwende die tolerante Prüfung für bessere SAS-Token Kompatibilität
                 const isExpired = currentDateTime > expiryWithTolerance;
-                console.log('✅ Final: Download abgelaufen?', isExpired);
                 
                 return isExpired;
                 
             } catch (error) {
-                console.error('Fehler beim Parsen des Ablaufdatums:', error);
-                console.log('⚠️ Parsing-Fehler - erlaube Download als Fallback');
                 return false; // Bei Fehler nicht blockieren
             }
         }
@@ -949,20 +841,17 @@
         function startDownload() {
             // Verhindere doppelte Downloads
             if (downloadStarted) {
-                console.log('⚠️ Download bereits gestartet - überspringe weiteren Download');
                 return;
             }
             
             // Prüfe ob Download abgelaufen ist
             if (isDownloadExpired()) {
-                console.log('⚠️ Download-Link ist abgelaufen');
                 showError('Der Download-Link ist abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
                 return;
             }
             
             try {
                 downloadStarted = true;
-                console.log('🚀 Starte Download (nur technisch notwendige Funktionen)');
                 
                 // Download über versteckten iframe starten
                 document.getElementById('downloadFrame').src = downloadUrl;
@@ -970,7 +859,6 @@
                 
             } catch (error) {
                 downloadStarted = false;
-                console.error('Download-Fehler:', error);
                 showError('Download konnte nicht gestartet werden.');
             }
         }
@@ -998,70 +886,51 @@
                     errorMsg += ' Keine URL-Parameter gefunden. Bitte verwenden Sie den Link aus Ihrer E-Mail.';
                 }
                 
-                console.log('❌ Kein Download-URL Parameter gefunden');
                 showError(errorMsg);
             } else {
-                console.log('✅ Download-URL gefunden, verarbeite Job-Informationen...');
-                
                 // Job-Informationen anzeigen
                 if (jobName && jobName !== 'Ihr Auftrag') {
                     jobNameElement.textContent = '📁 ' + decodeURIComponent(jobName);
-                    console.log('✅ Job-Name gesetzt:', jobName);
                 } else {
                     // Fallback für den Fall dass kein Job-Name verfügbar ist
                     jobNameElement.textContent = '📁 Ihr Auftrag';
-                    console.log('⚠️ Verwende Fallback Job-Namen');
                 }
                 
                 if (expiryDate) {
-                    console.log('📅 Verarbeite Ablaufdatum:', expiryDate);
-                    
                     // Formatiere das Ablaufdatum für bessere Anzeige
                     const expiryDateDecoded = decodeURIComponent(expiryDate);
                     let formattedDate = expiryDateDecoded;
-                    
-                    console.log('📅 Dekodiertes Ablaufdatum:', expiryDateDecoded);
                     
                     try {
                         // Versuche das Datum zu parsen und schöner zu formatieren
                         if (expiryDateDecoded.includes('-')) {
                             // ISO Format: YYYY-MM-DD HH:MM
                             const parts = expiryDateDecoded.split(' ');
-                            console.log('📅 ISO Format erkannt, Parts:', parts);
                             
                             if (parts.length >= 2) {
                                 const datePart = parts[0];
                                 const timePart = parts[1];
                                 const [year, month, day] = datePart.split('-');
                                 formattedDate = `${day}.${month}.${year} ${timePart}`;
-                                console.log('📅 Formatiert zu deutschem Format:', formattedDate);
                             }
-                        } else {
-                            console.log('📅 Deutsches Format beibehalten:', formattedDate);
                         }
                     } catch (error) {
-                        console.log('⚠️ Datum-Formatierung fehlgeschlagen, verwende Original:', error);
+                        // Datum-Formatierung fehlgeschlagen, verwende Original
                     }
                     
                     expiryDateElement.textContent = formattedDate;
-                    console.log('✅ Ablaufdatum in UI gesetzt:', formattedDate);
                 } else {
                     expiryDateElement.textContent = '-';
-                    console.log('⚠️ Kein Ablaufdatum vorhanden, setze "-"');
                 }
                 
                 jobInfoElement.style.display = 'block';
-                console.log('✅ Job-Info Panel angezeigt');
                 
                 // Teste die Ablauf-Logik vor dem Download
                 const isExpired = isDownloadExpired();
-                console.log('🔍 Download abgelaufen?', isExpired);
                 
                 if (isExpired) {
-                    console.log('❌ Download ist abgelaufen - zeige Fehler');
                     showError('Der Download-Link ist abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
                 } else {
-                    console.log('✅ Download ist gültig - starte automatischen Download');
                     // Download automatisch starten (technisch notwendig für Download-Service)
                     setTimeout(function() {
                         startDownload();
