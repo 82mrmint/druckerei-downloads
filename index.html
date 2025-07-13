@@ -733,6 +733,7 @@
         console.log('- job:', jobName);
         console.log('- token:', jobToken);
         console.log('- expiry:', expiryDate);
+        console.log('- expiry (decoded):', expiryDate ? decodeURIComponent(expiryDate) : 'null');
         
         const statusElement = document.getElementById('status');
         const statusTextElement = document.getElementById('statusText');
@@ -918,45 +919,75 @@
                     errorMsg += ' Keine URL-Parameter gefunden. Bitte verwenden Sie den Link aus Ihrer E-Mail.';
                 }
                 
+                console.log('❌ Kein Download-URL Parameter gefunden');
                 showError(errorMsg);
             } else {
+                console.log('✅ Download-URL gefunden, verarbeite Job-Informationen...');
+                
                 // Job-Informationen anzeigen
                 if (jobName && jobName !== 'Ihr Auftrag') {
                     jobNameElement.textContent = '📁 ' + decodeURIComponent(jobName);
+                    console.log('✅ Job-Name gesetzt:', jobName);
                 } else {
                     // Fallback für den Fall dass kein Job-Name verfügbar ist
                     jobNameElement.textContent = '📁 Ihr Auftrag';
+                    console.log('⚠️ Verwende Fallback Job-Namen');
                 }
+                
                 if (expiryDate) {
+                    console.log('📅 Verarbeite Ablaufdatum:', expiryDate);
+                    
                     // Formatiere das Ablaufdatum für bessere Anzeige
                     const expiryDateDecoded = decodeURIComponent(expiryDate);
                     let formattedDate = expiryDateDecoded;
+                    
+                    console.log('📅 Dekodiertes Ablaufdatum:', expiryDateDecoded);
                     
                     try {
                         // Versuche das Datum zu parsen und schöner zu formatieren
                         if (expiryDateDecoded.includes('-')) {
                             // ISO Format: YYYY-MM-DD HH:MM
-                            const [datePart, timePart] = expiryDateDecoded.split(' ');
-                            if (datePart && timePart) {
+                            const parts = expiryDateDecoded.split(' ');
+                            console.log('📅 ISO Format erkannt, Parts:', parts);
+                            
+                            if (parts.length >= 2) {
+                                const datePart = parts[0];
+                                const timePart = parts[1];
                                 const [year, month, day] = datePart.split('-');
                                 formattedDate = `${day}.${month}.${year} ${timePart}`;
+                                console.log('📅 Formatiert zu deutschem Format:', formattedDate);
                             }
+                        } else {
+                            console.log('📅 Deutsches Format beibehalten:', formattedDate);
                         }
-                        // Deutsches Format bleibt unverändert
                     } catch (error) {
-                        console.log('Datum-Formatierung fehlgeschlagen, verwende Original:', error);
+                        console.log('⚠️ Datum-Formatierung fehlgeschlagen, verwende Original:', error);
                     }
                     
                     expiryDateElement.textContent = formattedDate;
+                    console.log('✅ Ablaufdatum in UI gesetzt:', formattedDate);
                 } else {
                     expiryDateElement.textContent = '-';
+                    console.log('⚠️ Kein Ablaufdatum vorhanden, setze "-"');
                 }
-                jobInfoElement.style.display = 'block';
                 
-                // Download automatisch starten (technisch notwendig für Download-Service)
-                setTimeout(function() {
-                    startDownload();
-                }, 1500);
+                jobInfoElement.style.display = 'block';
+                console.log('✅ Job-Info Panel angezeigt');
+                
+                // Teste die Ablauf-Logik vor dem Download
+                const isExpired = isDownloadExpired();
+                console.log('🔍 Download abgelaufen?', isExpired);
+                
+                if (isExpired) {
+                    console.log('❌ Download ist abgelaufen - zeige Fehler');
+                    showError('Der Download-Link ist abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
+                } else {
+                    console.log('✅ Download ist gültig - starte automatischen Download');
+                    // Download automatisch starten (technisch notwendig für Download-Service)
+                    setTimeout(function() {
+                        startDownload();
+                    }, 1500);
+                }
             }
         });
     </script>
