@@ -778,17 +778,13 @@
                 // Prüfe ob ISO-Format (YYYY-MM-DD HH:MM oder YYYY-MM-DD)
                 if (expiryDateDecoded.includes('-')) {
                     if (expiryDateDecoded.includes(' ') && expiryDateDecoded.includes(':')) {
-                        // Format: YYYY-MM-DD HH:MM
+                        // Format: YYYY-MM-DD HH:MM (ohne Sekunden)
                         const [datePart, timePart] = expiryDateDecoded.split(' ');
                         const dateParts = datePart.split('-');
-                        let timeParts = timePart.split(':');
+                        const timeParts = timePart.split(':');
                         
-                        // Wenn nur HH:MM vorhanden, füge Sekunden hinzu
-                        if (timeParts.length === 2) {
-                            timeParts.push('00');
-                        }
-                        
-                        if (dateParts.length !== 3 || timeParts.length !== 3) {
+                        // Flexiblere Validierung - unterstütze HH:MM und HH:MM:SS
+                        if (dateParts.length !== 3 || (timeParts.length !== 2 && timeParts.length !== 3)) {
                             console.log('⚠️ Unbekanntes ISO Datum/Zeit-Format:', expiryDateDecoded);
                             return false;
                         }
@@ -798,7 +794,7 @@
                         const day = parseInt(dateParts[2]);
                         const hour = parseInt(timeParts[0]);
                         const minute = parseInt(timeParts[1]);
-                        const second = parseInt(timeParts[2]);
+                        const second = timeParts.length === 3 ? parseInt(timeParts[2]) : 0; // Sekunden optional
                         
                         expiryDateTime = new Date(year, month, day, hour, minute, second);
                         
