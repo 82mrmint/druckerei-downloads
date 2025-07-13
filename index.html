@@ -781,9 +781,14 @@
                         // Format: YYYY-MM-DD HH:MM
                         const [datePart, timePart] = expiryDateDecoded.split(' ');
                         const dateParts = datePart.split('-');
-                        const timeParts = timePart.split(':');
+                        let timeParts = timePart.split(':');
                         
-                        if (dateParts.length !== 3 || timeParts.length !== 2) {
+                        // Wenn nur HH:MM vorhanden, füge Sekunden hinzu
+                        if (timeParts.length === 2) {
+                            timeParts.push('00');
+                        }
+                        
+                        if (dateParts.length !== 3 || timeParts.length !== 3) {
                             console.log('⚠️ Unbekanntes ISO Datum/Zeit-Format:', expiryDateDecoded);
                             return false;
                         }
@@ -793,8 +798,9 @@
                         const day = parseInt(dateParts[2]);
                         const hour = parseInt(timeParts[0]);
                         const minute = parseInt(timeParts[1]);
+                        const second = parseInt(timeParts[2]);
                         
-                        expiryDateTime = new Date(year, month, day, hour, minute, 0);
+                        expiryDateTime = new Date(year, month, day, hour, minute, second);
                         
                     } else {
                         // Format: YYYY-MM-DD
