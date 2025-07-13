@@ -928,7 +928,28 @@
                     jobNameElement.textContent = '📁 Ihr Auftrag';
                 }
                 if (expiryDate) {
-                    expiryDateElement.textContent = decodeURIComponent(expiryDate);
+                    // Formatiere das Ablaufdatum für bessere Anzeige
+                    const expiryDateDecoded = decodeURIComponent(expiryDate);
+                    let formattedDate = expiryDateDecoded;
+                    
+                    try {
+                        // Versuche das Datum zu parsen und schöner zu formatieren
+                        if (expiryDateDecoded.includes('-')) {
+                            // ISO Format: YYYY-MM-DD HH:MM
+                            const [datePart, timePart] = expiryDateDecoded.split(' ');
+                            if (datePart && timePart) {
+                                const [year, month, day] = datePart.split('-');
+                                formattedDate = `${day}.${month}.${year} ${timePart}`;
+                            }
+                        }
+                        // Deutsches Format bleibt unverändert
+                    } catch (error) {
+                        console.log('Datum-Formatierung fehlgeschlagen, verwende Original:', error);
+                    }
+                    
+                    expiryDateElement.textContent = formattedDate;
+                } else {
+                    expiryDateElement.textContent = '-';
                 }
                 jobInfoElement.style.display = 'block';
                 
