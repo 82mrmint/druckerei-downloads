@@ -39,23 +39,23 @@
             margin-bottom: 30px;
         }
         .logo {
-            width: 100px;
+            width: 160px;
             height: auto;
-            max-height: 80px;
+            max-height: 128px;
             border-radius: 0;
             box-shadow: none;
             object-fit: contain;
         }
         .logo-fallback {
-            width: 70px;
-            height: 70px;
+            width: 112px;
+            height: 112px;
             background: linear-gradient(45deg, #00a8e6, #e91e63);
             border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 20px;
+            font-size: 32px;
             font-weight: bold;
             box-shadow: 0 4px 12px rgba(0, 168, 230, 0.3);
         }
@@ -462,17 +462,13 @@
     
     <div class="container">
         <div class="header">
-            <img src="https://lh3.googleusercontent.com/d/1UxXH8ZTaObAQ3SlviRT6N6IisqX7btRe" 
+            <img src="https://lh3.googleusercontent.com/d/1iCQP1VxiUsF90-XmmQ_u3M4n_rdLhXus" 
                  alt="Druckerei Mäser GmbH Logo" 
                  class="logo"
                  onerror="this.style.display='none'; document.getElementById('fallbackLogo').style.display='inline-flex';">
             <!-- Fallback Logo falls Google Drive nicht funktioniert -->
             <div id="fallbackLogo" class="logo-fallback" style="display: none;">
                 <span>DM</span>
-            </div>
-            <div class="company-name">
-                Druckerei<br>
-                <strong>Mäser GmbH</strong>
             </div>
         </div>
         
