@@ -739,8 +739,8 @@
         if (downloadUrl && expiryDate) {
             try {
                 const expiryDecoded = decodeURIComponent(expiryDate);
-                console.log('\n🔍 TIMESTAMP MISMATCH DEBUG:');
-                console.log('expiry-Parameter (Local):', expiryDecoded);
+                console.log('\n🔍 ERWEITERTE TIMESTAMP-ANALYSE:');
+                console.log('expiry-Parameter (Original):', expiryDecoded);
                 
                 // Extrahiere SAS-Token se-Parameter aus der Download-URL
                 const sasMatch = downloadUrl.match(/[?&]se=([^&]*)/);
@@ -748,21 +748,43 @@
                     const sasExpiry = decodeURIComponent(sasMatch[1]);
                     console.log('SAS se-Parameter (UTC):', sasExpiry);
                     
-                    // Parse beide Timestamps
-                    const expiryTime = new Date(expiryDecoded).getTime();
-                    const sasTime = new Date(sasExpiry).getTime();
-                    const diffMs = sasTime - expiryTime;
+                    // TIMEZONE-ANALYSE: Parse expiry als lokale Zeit vs UTC
+                    const expiryAsLocal = new Date(expiryDecoded);
+                    const expiryAsUTC = new Date(expiryDecoded + 'Z'); // Force UTC interpretation
+                    const sasTime = new Date(sasExpiry);
                     
-                    console.log('expiry-Zeit (ms):', expiryTime);
-                    console.log('SAS-Zeit (ms):', sasTime);
-                    console.log('Differenz (ms):', diffMs);
-                    console.log('Differenz (Sekunden):', Math.round(diffMs / 1000));
+                    console.log('\n📊 TIMEZONE-VERGLEICH:');
+                    console.log('expiry als lokale Zeit:', expiryAsLocal.toISOString(), '(' + expiryAsLocal.getTime() + ')');
+                    console.log('expiry als UTC-Zeit:', expiryAsUTC.toISOString(), '(' + expiryAsUTC.getTime() + ')');
+                    console.log('SAS se als UTC-Zeit:', sasTime.toISOString(), '(' + sasTime.getTime() + ')');
                     
-                    if (Math.abs(diffMs) < 60000) {
-                        console.log('✅ Differenz < 60s - wird von Toleranz-Logik abgefangen');
+                    const diffLocalMs = sasTime.getTime() - expiryAsLocal.getTime();
+                    const diffUTCMs = sasTime.getTime() - expiryAsUTC.getTime();
+                    
+                    console.log('\n🔍 DIFFERENZ-ANALYSE:');
+                    console.log('Differenz (expiry als lokal vs SAS):', Math.round(diffLocalMs / 1000) + 's (' + diffLocalMs + 'ms)');
+                    console.log('Differenz (expiry als UTC vs SAS):', Math.round(diffUTCMs / 1000) + 's (' + diffUTCMs + 'ms)');
+                    
+                    // Browser-Timezone-Info
+                    const browserOffset = new Date().getTimezoneOffset();
+                    console.log('\n🌍 BROWSER-TIMEZONE:');
+                    console.log('Browser Timezone Offset:', browserOffset + ' Minuten (' + (browserOffset / 60) + ' Stunden)');
+                    console.log('Browser Timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+                    
+                    // Empfehlung basierend auf Analyse
+                    if (Math.abs(diffUTCMs) < Math.abs(diffLocalMs)) {
+                        console.log('\n💡 EMPFEHLUNG: expiry-Parameter sollte als UTC interpretiert werden!');
+                        console.log('   UTC-Differenz (' + Math.round(diffUTCMs / 1000) + 's) ist kleiner als lokale Differenz (' + Math.round(diffLocalMs / 1000) + 's)');
                     } else {
-                        console.log('⚠️ Differenz > 60s - könnte problematisch sein');
+                        console.log('\n💡 EMPFEHLUNG: Aktuelle lokale Zeit-Interpretation ist korrekt');
                     }
+                    
+                    if (Math.abs(diffUTCMs) < 60000) {
+                        console.log('✅ UTC-Interpretation: Differenz < 60s - kompatibel mit Toleranz-Logik');
+                    } else {
+                        console.log('⚠️ UTC-Interpretation: Differenz > 60s - Toleranz-Logik muss angepasst werden');
+                    }
+                    
                 } else {
                     console.log('⚠️ Kein SAS se-Parameter in Download-URL gefunden');
                 }
