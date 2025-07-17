@@ -740,6 +740,19 @@
             statusElement.style.color = '#28a745';
         }
         
+        // Prüfen ob Link abgelaufen ist
+        function checkIfExpired() {
+            if (!expiryDate) return false;
+            
+            try {
+                const expiry = new Date(expiryDate);
+                const now = new Date();
+                return now > expiry;
+            } catch (error) {
+                return false;
+            }
+        }
+        
         function startDownload() {
             if (downloadStarted) return;
             downloadStarted = true;
@@ -749,19 +762,44 @@
                 return;
             }
             
+            // Prüfen ob der Link abgelaufen ist
+            if (checkIfExpired()) {
+                showError('⏰ Dieser Download-Link ist abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
+                return;
+            }
+            
             try {
                 // Download über versteckten iframe starten
                 const iframe = document.getElementById('downloadFrame');
                 iframe.src = downloadUrl;
                 
-                // Status-Update nach kurzer Verzögerung
+                // Nach kurzer Zeit prüfen ob Download erfolgreich war
                 setTimeout(() => {
-                    showSuccess();
+                    // Versuchen zu testen ob der Download funktioniert hat
+                    checkDownloadSuccess();
                 }, 1500);
                 
             } catch (error) {
                 showError('Fehler beim Starten des Downloads.');
             }
+        }
+        
+        function checkDownloadSuccess() {
+            // Erstelle einen Test-Request um zu prüfen ob die URL noch gültig ist
+            fetch(downloadUrl, { method: 'HEAD' })
+                .then(response => {
+                    if (response.status === 403 || response.status === 404) {
+                        showError('⏰ Dieser Download-Link ist abgelaufen oder nicht mehr verfügbar. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
+                    } else if (response.ok) {
+                        showSuccess();
+                    } else {
+                        showError(`Download-Fehler (${response.status}). Bitte versuchen Sie es später erneut.`);
+                    }
+                })
+                .catch(error => {
+                    // Bei CORS-Fehlern oder anderen Netzwerkproblemen optimistisch sein
+                    showSuccess();
+                });
         }
         
         // Cookie-Hinweis Event-Listener
@@ -782,9 +820,30 @@
                 try {
                     const date = new Date(expiryDate);
                     expiryDateElement.textContent = date.toLocaleDateString('de-DE');
+                    
+                    // Warnung anzeigen wenn Link bald abläuft (innerhalb 24 Stunden)
+                    const now = new Date();
+                    const timeUntilExpiry = date.getTime() - now.getTime();
+                    const hoursUntilExpiry = timeUntilExpiry / (1000 * 60 * 60);
+                    
+                    if (hoursUntilExpiry < 24 && hoursUntilExpiry > 0) {
+                        expiryDateElement.style.color = '#ff6b35';
+                        expiryDateElement.style.fontWeight = 'bold';
+                        expiryDateElement.textContent += ' ⚠️ (läuft bald ab)';
+                    } else if (hoursUntilExpiry <= 0) {
+                        expiryDateElement.style.color = '#dc3545';
+                        expiryDateElement.style.fontWeight = 'bold';
+                        expiryDateElement.textContent += ' ❌ (abgelaufen)';
+                    }
                 } catch (error) {
                     expiryDateElement.textContent = expiryDate;
                 }
+            }
+            
+            // Sofort prüfen ob Link abgelaufen ist
+            if (checkIfExpired()) {
+                showError('⏰ Dieser Download-Link ist bereits abgelaufen. Bitte wenden Sie sich an die Druckerei Mäser GmbH für einen neuen Link.');
+                return;
             }
             
             // Download nach kurzer Verzögerung automatisch starten
